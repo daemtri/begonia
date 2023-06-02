@@ -1,12 +1,10 @@
-package syncx_test
+package syncx
 
 import (
 	"fmt"
 	"reflect"
 	"sync/atomic"
 	"testing"
-
-	syncmap "git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
 )
 
 type bench struct {
@@ -15,7 +13,7 @@ type bench struct {
 }
 
 func benchMap(b *testing.B, bench bench) {
-	for _, m := range [...]mapInterface[int, int]{&WrapperMap[int, int]{}, &syncmap.Map[int, int]{}} {
+	for _, m := range [...]mapInterface[int, int]{&WrapperMap[int, int]{}, &Map[int, int]{}} {
 		b.Run(fmt.Sprintf("%T", m), func(b *testing.B) {
 			m = reflect.New(reflect.TypeOf(m).Elem()).Interface().(mapInterface[int, int])
 			if bench.setup != nil {
