@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package mwitkow.testproto;
+
+option go_package="github.com/mwitkow/grpc-proxy/testservice";
+
+import "google/protobuf/empty.proto";
+
+message PingRequest {
+  string value = 1;
+}
+
+message PingResponse {
+  string value = 1;
+  int32 counter = 2;
+}
+
+service TestService {
+  rpc PingEmpty(google.protobuf.Empty) returns (PingResponse) {}
+
+  rpc Ping(PingRequest) returns (PingResponse) {}
+
+  rpc PingError(PingRequest) returns (google.protobuf.Empty) {}
+
+  rpc PingList(PingRequest) returns (stream PingResponse) {}
+
+  rpc PingStream(stream PingRequest) returns (stream PingResponse) {}
+
+}
+
