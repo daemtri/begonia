@@ -6,6 +6,7 @@ import (
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -23,6 +24,9 @@ type moduleRuntime struct {
 	moduleName string
 	opts       *moduleOption
 	module     Module
+
+	redisClient helper.OnceCell[*redis.Client]
+	dbClient    helper.OnceCell[*sql.DB]
 }
 
 func withModuleRuntime(ctx context.Context, mr *moduleRuntime) context.Context {
@@ -55,12 +59,14 @@ func GetLogger(ctx context.Context) *logx.Logger {
 
 // GetRedis 获取redis
 func GetRedis(ctx context.Context, name string) *redis.Client {
-	panic("unimplement")
+	mr := moduleRuntimeFromCtx(ctx)
+	return mr.redisClient.GetOrInit(nil)
 }
 
 // GetDB  获取数据库
 func GetDB(ctx context.Context, name string) *sql.DB {
-	panic("unimplement")
+	mr := moduleRuntimeFromCtx(ctx)
+	return mr.dbClient.GetOrInit(nil)
 }
 
 // GetConfig 获取配置

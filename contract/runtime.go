@@ -27,6 +27,8 @@ type ConfigInterface interface {
 }
 
 type DistrubutedLocker interface {
+	Lock(key string, fn func()) error
+	TryLock(key string, fn func()) error
 }
 
 type Notifier interface {
