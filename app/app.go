@@ -10,7 +10,9 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/files"
+	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/k8s"
 )
 
 var (
@@ -35,8 +37,8 @@ func Run(name string) {
 	}, box.WithFlags("trace"))
 
 	// 注册runtime
-	box.Provide[component.Configuration](&runtime.Builder[component.Configuration]{Name: files.ConfigName}, box.WithFlags("config"))
-	box.Provide[component.Discovery](&runtime.Builder[component.Discovery]{Name: files.DiscoveryName}, box.WithFlags("discovery"))
+	box.Provide[component.Configuration](&runtime.Builder[component.Configuration]{Name: files.Name}, box.WithFlags("config"))
+	box.Provide[component.Discovery](&runtime.Builder[component.Discovery]{Name: files.Name}, box.WithFlags("discovery"))
 	box.Provide[component.Concurrency](&runtime.Builder[component.Concurrency]{Name: "file"}, box.WithFlags("concurrency"))
 
 	// 注册bootstrap

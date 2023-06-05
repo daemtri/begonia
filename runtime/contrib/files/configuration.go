@@ -19,10 +19,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-const ConfigName = "file"
+const Name = "file"
 
 func init() {
-	component.Register[component.Configuration](ConfigName, &ConfigurationBootloader{})
+	component.Register[component.Configuration](Name, &ConfigurationBootloader{})
 }
 
 type ConfigurationBootloader struct {

@@ -21,7 +21,7 @@ type Discovery interface {
 	// Register 注册service，Register只能被调用一次
 	Register(ctx context.Context, service ServiceEntry) error
 	// Lookup 查询指定id和name的ServiceEntry
-	Lookup(ctx context.Context, name, id string) (ServiceEntry, error)
+	Lookup(ctx context.Context, name, id string) (*ServiceEntry, error)
 	// Browse 查询指定name的所有ServiceEntry
 	Browse(ctx context.Context, name string) (*Service, error)
 	// Watch 监听服务变化，当ctx.Cancel时，将关闭channel
@@ -30,7 +30,7 @@ type Discovery interface {
 	//     1. 首次订阅，且服务列表非空，立即推送服务信息
 	//     2. 当服务列表发生变动时,推送该服务当前最新的的全部ServiceEntry
 	// 注意：chan任何时候都应该发送的是指定name的服务的此刻的完整的实例列表
-	Watch(ctx context.Context, name string) (<-chan *Service, error)
+	Watch(ctx context.Context, name string, ch chan<- *Service) error
 }
 
 // ServiceEntry 表示一个APP(Service)在服务发现系统中的一个实例(节点)

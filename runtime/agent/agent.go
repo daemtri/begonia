@@ -70,8 +70,8 @@ func (da *DiscoveryAgent) startWatch(name string) (*component.Service, error) {
 	if ok {
 		return ses2, nil
 	}
-	ch, err := da.Discovery.Watch(context.TODO(), name)
-	if err != nil {
+	ch := make(chan *component.Service, 1)
+	if err := da.Discovery.Watch(context.TODO(), name, ch); err != nil {
 		return nil, fmt.Errorf("discovery watch  error %s", err)
 	}
 	sender := da.queue.Topic(name)
@@ -88,17 +88,22 @@ func (da *DiscoveryAgent) startWatch(name string) (*component.Service, error) {
 	return ses1, nil
 }
 
-func (da *DiscoveryAgent) Watch(ctx context.Context, name string) (<-chan *component.Service, error) {
+func (da *DiscoveryAgent) Watch(ctx context.Context, name string, ch chan<- *component.Service) error {
 	ses, err := da.startWatch(name)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	topic := da.queue.Topic(name)
-	updates, cancel := da.queue.Subscribe(name)
 	topic <- ses
-	go func() {
-		<-ctx.Done()
-		cancel()
-	}()
-	return updates, nil
+
+	updates, cancel := da.queue.Subscribe(name)
+	for {
+		select {
+		case s := <-updates:
+			ch <- s
+		case <-ctx.Done():
+			cancel()
+			return nil
+		}
+	}
 }

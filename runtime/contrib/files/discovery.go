@@ -13,12 +13,8 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
-const (
-	DiscoveryName = "file"
-)
-
 func init() {
-	component.Register[component.Discovery](DiscoveryName, &DiscoveryBootloader{})
+	component.Register[component.Discovery](Name, &DiscoveryBootloader{})
 }
 
 type DiscoveryBootloader struct {
@@ -83,10 +79,10 @@ func (r *Registry) Register(ctx context.Context, service component.ServiceEntry)
 	return nil
 }
 
-func (r *Registry) Lookup(ctx context.Context, id, name string) (se component.ServiceEntry, err error) {
+func (r *Registry) Lookup(ctx context.Context, id, name string) (se *component.ServiceEntry, err error) {
 	for i := range r.services {
 		if id == r.services[i].ID && name == r.services[i].Name {
-			return r.services[i], nil
+			return &r.services[i], nil
 		}
 	}
 	err = errors.New("service not found")
@@ -105,12 +101,12 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	}, nil
 }
 
-func (r *Registry) Watch(ctx context.Context, name string) (<-chan *component.Service, error) {
-	ch := make(chan *component.Service, 1)
+func (r *Registry) Watch(ctx context.Context, name string, ch chan<- *component.Service) error {
 	service, err := r.Browse(ctx, name)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	ch <- service
-	return ch, nil
+	<-ctx.Done()
+	return nil
 }
