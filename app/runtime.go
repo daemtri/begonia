@@ -10,7 +10,6 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
@@ -20,9 +19,9 @@ type contextKey struct{ name string }
 var (
 	moduleRuntimeCtxKey = &contextKey{name: "module_runtime"}
 	global              = struct {
-		redisClient  syncx.Map[string, helper.OnceCell[*redis.Client]]
-		dbClient     syncx.Map[string, helper.OnceCell[*sql.DB]]
-		servicesConn syncx.Map[string, helper.OnceCell[grpc.ClientConnInterface]]
+		redisClient  helper.OnceMap[string, *redis.Client]
+		dbClient     helper.OnceMap[string, *sql.DB]
+		servicesConn helper.OnceMap[string, grpc.ClientConnInterface]
 	}{}
 	grpcClientBuilder *grpcx.ClientBuilder
 )
@@ -73,15 +72,17 @@ func GetLogger(ctx context.Context) *logx.Logger {
 // GetRedis 获取redis
 func GetRedis(ctx context.Context, name string) *redis.Client {
 	// mr := moduleRuntimeFromCtx(ctx)
-	client, _ := global.redisClient.LoadOrStore(name, helper.OnceCell[*redis.Client]{})
-	return client.GetOrInit(nil)
+	return global.redisClient.GetOrInit(name, func() *redis.Client {
+		return nil
+	})
 }
 
 // GetDB  获取数据库
 func GetDB(ctx context.Context, name string) *sql.DB {
 	// mr := moduleRuntimeFromCtx(ctx)
-	client, _ := global.dbClient.LoadOrStore(name, helper.OnceCell[*sql.DB]{})
-	return client.GetOrInit(nil)
+	return global.dbClient.GetOrInit(name, func() *sql.DB {
+		return nil
+	})
 }
 
 // GetConfig 获取配置
@@ -107,8 +108,7 @@ func GetPubSub(ctx context.Context) contract.PubSubInterface {
 // GetServiceConn
 func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	// mr := moduleRuntimeFromCtx(ctx)
-	client, _ := global.servicesConn.LoadOrStore(name, helper.OnceCell[grpc.ClientConnInterface]{})
-	return client.GetOrInit(func() grpc.ClientConnInterface {
+	return global.servicesConn.GetOrInit(name, func() grpc.ClientConnInterface {
 		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "", "")
 		if err != nil {
 			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
