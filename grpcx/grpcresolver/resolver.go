@@ -62,8 +62,8 @@ func (sr *sgrResolver) Init() error {
 	}
 
 	sr.ctx, sr.ctxCancel = context.WithCancel(context.Background())
-	discoverCh, err := sr.discovery.Watch(sr.ctx, sr.target.serviceName)
-	if err != nil {
+	discoverCh := make(chan *component.Service, 1)
+	if err := sr.discovery.Watch(sr.ctx, sr.target.serviceName, discoverCh); err != nil {
 		return err
 	}
 

@@ -28,7 +28,8 @@ func Run(name string) {
 	box.FlagSet().BoolVar(&enableSideCarMode, "sidecar-enable", false, "开启sgr服务发现边车模式")
 
 	// 注册基础功能
-	box.Provide[*grpcx.ServerBuilder](grpcx.NewServerBuilder, box.WithFlags("grpc"))
+	box.Provide[*grpcx.ClientBuilder](grpcx.NewClientBuilder, box.WithFlags("grpc-client"))
+	box.Provide[*grpcx.ServerBuilder](grpcx.NewServerBuilder, box.WithFlags("grpc-server"))
 	box.Provide[*tracing.Factory](&tracing.Factory{
 		ServiceInstanceID: runtime.GetServiceID(),
 		ServiceNamespace:  runtime.GetNamespace(),
@@ -58,6 +59,7 @@ func Run(name string) {
 	// 初始化module和服务注册
 	box.UseInit(initModules())
 	box.UseInit(initRegisterApp)
+	box.UseInit(initGlobal)
 
 	if err := box.Bootstrap[bootstrap.Engine](
 		yamlconfig.Init(),

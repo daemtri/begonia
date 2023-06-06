@@ -3,18 +3,34 @@ package app
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
+	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
+	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
 	"github.com/redis/go-redis/v9"
+	"google.golang.org/grpc"
 )
 
 type contextKey struct{ name string }
 
 var (
 	moduleRuntimeCtxKey = &contextKey{name: "module_runtime"}
+	global              = struct {
+		redisClient  syncx.Map[string, helper.OnceCell[*redis.Client]]
+		dbClient     syncx.Map[string, helper.OnceCell[*sql.DB]]
+		servicesConn syncx.Map[string, helper.OnceCell[grpc.ClientConnInterface]]
+	}{}
+	grpcClientBuilder *grpcx.ClientBuilder
 )
+
+func initGlobal(ctx context.Context) error {
+	grpcClientBuilder = box.Invoke[*grpcx.ClientBuilder](ctx)
+	return nil
+}
 
 type moduleOption struct {
 	Dependecies []string `flag:"dependecies" usage:"依赖"`
@@ -24,9 +40,6 @@ type moduleRuntime struct {
 	moduleName string
 	opts       *moduleOption
 	module     Module
-
-	redisClient helper.OnceCell[*redis.Client]
-	dbClient    helper.OnceCell[*sql.DB]
 }
 
 func withModuleRuntime(ctx context.Context, mr *moduleRuntime) context.Context {
@@ -59,14 +72,16 @@ func GetLogger(ctx context.Context) *logx.Logger {
 
 // GetRedis 获取redis
 func GetRedis(ctx context.Context, name string) *redis.Client {
-	mr := moduleRuntimeFromCtx(ctx)
-	return mr.redisClient.GetOrInit(nil)
+	// mr := moduleRuntimeFromCtx(ctx)
+	client, _ := global.redisClient.LoadOrStore(name, helper.OnceCell[*redis.Client]{})
+	return client.GetOrInit(nil)
 }
 
 // GetDB  获取数据库
 func GetDB(ctx context.Context, name string) *sql.DB {
-	mr := moduleRuntimeFromCtx(ctx)
-	return mr.dbClient.GetOrInit(nil)
+	// mr := moduleRuntimeFromCtx(ctx)
+	client, _ := global.dbClient.LoadOrStore(name, helper.OnceCell[*sql.DB]{})
+	return client.GetOrInit(nil)
 }
 
 // GetConfig 获取配置
@@ -89,12 +104,20 @@ func GetPubSub(ctx context.Context) contract.PubSubInterface {
 	panic("unimplement")
 }
 
-// GetClient 获取grpc服务，从 ctx中获取名称, 同时支持cluster和service
-func GetClient[T any](ctx context.Context) T {
-	panic("unimplement")
+// GetServiceConn
+func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
+	// mr := moduleRuntimeFromCtx(ctx)
+	client, _ := global.servicesConn.LoadOrStore(name, helper.OnceCell[grpc.ClientConnInterface]{})
+	return client.GetOrInit(func() grpc.ClientConnInterface {
+		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "", "")
+		if err != nil {
+			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
+		}
+		return conn
+	})
 }
 
-// GetAuth 获取认证信息
-func GetAuth(ctx context.Context) contract.AuthInterface {
+// GetUserInfo 获取用户信息
+func GetUserInfo(ctx context.Context) contract.UserInfoInterface {
 	panic("unimplement")
 }

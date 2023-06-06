@@ -131,7 +131,3 @@ func RegisterRoute[K ~int32, T proto.Message](reg Registry, msgID K, handleFunc 
 func RegisterService(reg Registry, desc *grpc.ServiceDesc, impl any) {
 	reg.RegisterService(desc, impl)
 }
-
-func RegisterClient[T any](reg Registry, fn func(grpc.ClientConnInterface) T, name string) {
-
-}

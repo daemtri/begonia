@@ -41,9 +41,10 @@ type ServiceInterface interface {
 	ClientConn() grpc.ClientConnInterface
 }
 
-type AuthInterface interface {
+type UserInfoInterface interface {
 	GetUserID() int32
 	GetTenantID() int32
+	FromGatewayID() string
 	GetGameID() int32
 	GetClientVersion() int32
 }
