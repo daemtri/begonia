@@ -26,7 +26,6 @@ func init() {
 
 type DiscoveryBootloader struct {
 	Namespace string
-	Port      int
 
 	reg Registry
 }
@@ -59,7 +58,6 @@ func (d *DiscoveryBootloader) Boot(logger *slog.Logger) error {
 	d.reg.logger = logger
 	d.reg.clientset = clientset
 	d.reg.namespace = d.Namespace
-	d.reg.port = int32(d.Port)
 	return d.reg.Boot()
 }
 
@@ -74,7 +72,6 @@ func (d *DiscoveryBootloader) Instance() component.Discovery {
 
 type Registry struct {
 	namespace string
-	port      int32
 	clientset *kubernetes.Clientset
 	logger    *slog.Logger
 	services  []component.ServiceEntry

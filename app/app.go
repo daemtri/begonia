@@ -13,6 +13,7 @@ import (
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/files"
 	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/k8s"
+	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/servicemesh"
 )
 
 var (
