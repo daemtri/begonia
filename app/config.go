@@ -32,5 +32,22 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 		return fmt.Errorf("解析配置文件出错, name=%s, err=%w", name, err)
 	}
 	setter(items)
+	go func() {
+		ch, err := c.driver.WatchConfig(ctx, name)
+		if err != nil {
+			panic(err)
+		}
+		for cfg := range ch {
+			jsonRawConfig, err := yaml.YAMLToJSON(cfg.Raw())
+			if err != nil {
+				panic(err)
+			}
+			items, err := config.ParseJSONToKeyValue(string(jsonRawConfig))
+			if err != nil {
+				panic(err)
+			}
+			setter(items)
+		}
+	}()
 	return nil
 }
