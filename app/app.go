@@ -60,7 +60,6 @@ func Run(name string) {
 	// 初始化module和服务注册
 	box.UseInit(initModules())
 	box.UseInit(initRegisterApp)
-	box.UseInit(initGlobal)
 
 	if err := box.Bootstrap[bootstrap.Engine](
 		yamlconfig.Init(),

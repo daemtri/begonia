@@ -41,26 +41,33 @@ func (mc *moduleConfig[T]) Instance() T {
 	return mc.instance.Load().(T)
 }
 
-// Watch 实现contract.ConfigInterface Watch接口
-func (mc *moduleConfig[T]) Watch(ctx context.Context, setter func(T)) error {
+// SpanWatch 实现contract.ConfigInterface SpanWatch接口
+func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T)) error {
 	ch, err := configWatcher.WatchConfig(ctx, mc.name)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	for cfg := range ch {
-		newInstance, kind := mc.init()
-		if kind == reflect.Pointer {
-			if err := cfg.Decode(newInstance); err != nil {
-				panic(err)
-			}
-		} else {
-			if err := cfg.Decode(&newInstance); err != nil {
-				panic(err)
+	go func() {
+		for {
+			select {
+			case cfg := <-ch:
+				newInstance, kind := mc.init()
+				if kind == reflect.Pointer {
+					if err := cfg.Decode(newInstance); err != nil {
+						panic(err)
+					}
+				} else {
+					if err := cfg.Decode(&newInstance); err != nil {
+						panic(err)
+					}
+				}
+				mc.instance.Store(newInstance)
+				setter(newInstance)
+			case <-ctx.Done():
+				logger.Info("module config watch done", "name", mc.name)
 			}
 		}
-		mc.instance.Store(newInstance)
-		setter(newInstance)
-	}
+	}()
 	return nil
 }
 

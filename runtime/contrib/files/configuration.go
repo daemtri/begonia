@@ -38,7 +38,7 @@ func (c *ConfigurationBootloader) AddFlags(fs *flag.FlagSet) {
 	if err != nil {
 		pwd = filepathx.UserHomePath(".sgr")
 	}
-	fs.StringVar(&c.dir, "dir", pwd, "配置文件目录")
+	fs.StringVar(&c.dir, "dir", filepath.Join(pwd, "configs"), "配置文件目录")
 }
 
 func (c *ConfigurationBootloader) ValidateFlags() error {
@@ -52,9 +52,6 @@ func (c *ConfigurationBootloader) Boot(logger *slog.Logger) error {
 		return err
 	}
 	c.instance.configDir = path
-	c.instance.sgrdConfigFile = "sgrd.yaml"
-	c.instance.serviceConfigDir = "service_config"
-	c.instance.appConfigDir = "app"
 	c.instance.broker = chanpubsub.NewBroker[fsnotify.Event]()
 	return c.instance.init()
 }
@@ -69,18 +66,15 @@ func (c *ConfigurationBootloader) Instance() component.Configuration {
 }
 
 type Configuration struct {
-	log              *slog.Logger
-	configDir        string
-	sgrdConfigFile   string
-	appConfigDir     string
-	serviceConfigDir string
+	log       *slog.Logger
+	configDir string
 
 	watcher *fsnotify.Watcher
 	broker  *chanpubsub.Broker[fsnotify.Event]
 }
 
 func (c *Configuration) close() error {
-	c.log.Info("结束监听sgr配置文件", "file", filepath.Join(c.configDir, c.sgrdConfigFile))
+	c.log.Info("结束监听配置文件", "config dir", c.configDir)
 	if err := c.watcher.Close(); err != nil {
 		return fmt.Errorf("watcher关闭失败: %w", err)
 	}
@@ -88,7 +82,7 @@ func (c *Configuration) close() error {
 }
 
 func (c *Configuration) init() error {
-	c.log.Info("开始监听sgr配置文件", "dir", c.configDir)
+	c.log.Info("开始监听配置文件", "dir", c.configDir)
 	var err error
 	c.watcher, err = fsnotify.NewWatcher()
 	if err != nil {
@@ -103,7 +97,7 @@ func (c *Configuration) init() error {
 				}
 				if event.Has(fsnotify.Write) {
 					c.broker.Topic(event.Name) <- event
-					c.log.Info("sgr配置文件发生变化", "event", event.String(), "path", event.Name)
+					c.log.Info("配置文件发生变化", "event", event.String(), "path", event.Name)
 				}
 			case err, ok := <-c.watcher.Errors:
 				if !ok {
@@ -140,9 +134,11 @@ func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-c
 			select {
 			case <-ctx.Done():
 				cancel()
+				close(ch)
 				return
 			case event, ok := <-updates:
 				if !ok {
+					close(ch)
 					return
 				}
 				c.log.Info("配置文件更新", "event", event)
@@ -156,11 +152,11 @@ func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-c
 }
 
 func (c *Configuration) WatchConfig(ctx context.Context, name string) (<-chan component.ConfigDecoder, error) {
-	cfgFile := filepath.Join(c.configDir, c.appConfigDir, name+".yaml")
+	cfgFile := filepath.Join(c.configDir, name+".yaml")
 	return c.watchConfig(ctx, cfgFile)
 }
 
 func (c *Configuration) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
-	cfgFile := filepath.Join(c.configDir, c.sgrdConfigFile)
+	cfgFile := filepath.Join(c.configDir, name+".yaml")
 	return c.readFile(cfgFile)
 }

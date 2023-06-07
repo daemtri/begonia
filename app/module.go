@@ -23,6 +23,9 @@ func initModules() func(ctx context.Context) error {
 		box.Provide[*moduleRuntime](newModuleRuntime(name, modules[name]), box.WithFlags("module-"+name), box.WithName(name))
 	}
 	return func(ctx context.Context) error {
+		if err := initGlobal(ctx); err != nil {
+			return err
+		}
 		reg := box.Invoke[Registry](ctx)
 		modules := box.Invoke[[]*moduleRuntime](ctx)
 		for i := range modules {

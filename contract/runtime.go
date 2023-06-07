@@ -30,7 +30,7 @@ type ConfigInterface[T any] interface {
 	// 如果配置类型是指针，则返回nil。
 	Instance() T
 	// Watch 用于监听配置项的变化。
-	Watch(ctx context.Context, fn func(T)) error
+	SpanWatch(ctx context.Context, fn func(T)) error
 }
 
 type DistrubutedLocker interface {

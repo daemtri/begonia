@@ -29,7 +29,7 @@ func (d *DiscoveryBootloader) Destroy() error {
 }
 
 func (d *DiscoveryBootloader) AddFlags(fs *flag.FlagSet) {
-	fs.StringVar(&d.ServiceFile, "appsfile", "./apps.yaml", "服务发现前缀")
+	fs.StringVar(&d.ServiceFile, "appsfile", "./configs/apps.yaml", "服务发现前缀")
 }
 
 func (d *DiscoveryBootloader) ValidateFlags() error {
