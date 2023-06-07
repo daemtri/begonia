@@ -2,6 +2,7 @@ package grpcresolver
 
 import (
 	"errors"
+
 	"google.golang.org/grpc/resolver"
 )
 

@@ -7,9 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"sigs.k8s.io/yaml"
-
-	config "git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/jsonconfig"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/chanpubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/filepathx"
@@ -17,6 +14,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/fsnotify/fsnotify"
 	"golang.org/x/exp/slog"
+	"sigs.k8s.io/yaml"
 )
 
 const Name = "file"
@@ -118,24 +116,18 @@ func (c *Configuration) init() error {
 	return nil
 }
 
-func (c *Configuration) readFile(configFile string) ([]component.ConfigItem, error) {
+func (c *Configuration) readFile(configFile string) (component.ConfigDecoder, error) {
 	data, err := os.ReadFile(configFile)
 	if err != nil {
 		return nil, fmt.Errorf("读取配置文件出错 path=%s, err=%w", configFile, err)
 	}
-	jsonRawConfig, err := yaml.YAMLToJSON(data)
-	if err != nil {
-		return nil, fmt.Errorf("转化配置文件格式出错, path=%s, err=%w", configFile, err)
-	}
-	items, err := config.ParseJSONToKeyValue(string(jsonRawConfig))
-	if err != nil {
-		return nil, fmt.Errorf("解析配置文件出错, path=%s, err=%w", configFile, err)
-	}
-	return items, nil
+	return component.NewConfigDecoder(data, func(raw []byte, x any) error {
+		return yaml.Unmarshal(raw, x)
+	}), nil
 }
 
-func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-chan []component.ConfigItem, error) {
-	ch := make(chan []component.ConfigItem, 1)
+func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-chan component.ConfigDecoder, error) {
+	ch := make(chan component.ConfigDecoder, 1)
 	if err := helper.Chain(ch).TrySend(c.readFile(configFile)); err != nil {
 		c.log.Warn("首次读取配置出错", "file", configFile, "error", err)
 	}
@@ -163,12 +155,12 @@ func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-c
 	return ch, nil
 }
 
-func (c *Configuration) WatchConfig(ctx context.Context, name string) (<-chan []component.ConfigItem, error) {
+func (c *Configuration) WatchConfig(ctx context.Context, name string) (<-chan component.ConfigDecoder, error) {
 	cfgFile := filepath.Join(c.configDir, c.appConfigDir, name+".yaml")
 	return c.watchConfig(ctx, cfgFile)
 }
 
-func (c *Configuration) ReadConfig(ctx context.Context, name string) ([]component.ConfigItem, error) {
+func (c *Configuration) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
 	cfgFile := filepath.Join(c.configDir, c.sgrdConfigFile)
 	return c.readFile(cfgFile)
 }

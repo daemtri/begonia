@@ -1,6 +1,7 @@
 package contract
 
 import (
+	"context"
 	"time"
 
 	"google.golang.org/grpc"
@@ -23,7 +24,13 @@ type PubSubInterface interface {
 	Publish()
 }
 
-type ConfigInterface interface {
+// ConfigInterface 配置接口
+type ConfigInterface[T any] interface {
+	// Instance 用于获取配置项的值，如果配置项不存在则返回默认值，
+	// 如果配置类型是指针，则返回nil。
+	Instance() T
+	// Watch 用于监听配置项的变化。
+	Watch(ctx context.Context, fn func(T)) error
 }
 
 type DistrubutedLocker interface {
