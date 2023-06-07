@@ -74,7 +74,7 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T)) error 
 // GetConfig 获取配置
 func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
 	mr := moduleRuntimeFromCtx(ctx)
-	return mr.config.GetOrInit(func() any {
+	return mr.config.MustGetOrInit(func() any {
 		mc := &moduleConfig[T]{
 			name: fmt.Sprintf("module_%s", mr.moduleName),
 			init: helper.NewWithKind[T],

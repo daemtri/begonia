@@ -74,22 +74,6 @@ func GetLogger(ctx context.Context) *logx.Logger {
 	return logx.GetLogger("module:" + mr.moduleName)
 }
 
-// GetRedis 获取redis
-func GetRedis(ctx context.Context, name string) *redis.Client {
-	// mr := moduleRuntimeFromCtx(ctx)
-	return global.redisClient.GetOrInit(name, func() *redis.Client {
-		return nil
-	})
-}
-
-// GetDB  获取数据库
-func GetDB(ctx context.Context, name string) *sql.DB {
-	// mr := moduleRuntimeFromCtx(ctx)
-	return global.dbClient.GetOrInit(name, func() *sql.DB {
-		return nil
-	})
-}
-
 // GetLocker 获取分布式锁
 func GetLocker(ctx context.Context) contract.DistrubutedLocker {
 	panic("unimplement")
@@ -108,7 +92,7 @@ func GetPubSub(ctx context.Context) contract.PubSubInterface {
 // GetServiceConn
 func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	// mr := moduleRuntimeFromCtx(ctx)
-	return global.servicesConn.GetOrInit(name, func() grpc.ClientConnInterface {
+	return global.servicesConn.MustGetOrInit(name, func() grpc.ClientConnInterface {
 		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "grpc://", "")
 		if err != nil {
 			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
