@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"reflect"
-	"sync"
 	"sync/atomic"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
@@ -14,7 +13,6 @@ import (
 // moduleConfig 模块配置
 type moduleConfig[T any] struct {
 	name     string
-	once     sync.Once
 	init     func() (T, reflect.Kind)
 	instance atomic.Value
 }
