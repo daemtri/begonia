@@ -12,7 +12,7 @@ import (
 )
 
 type LogicServerRunOption struct {
-	Addr string `flag:"addr" default:"0.0.0.0:8090" usage:"小游戏服务监听地址"`
+	Addr string `flag:"addr" default:"0.0.0.0:8090" usage:"Grpc服务监听地址"`
 }
 
 // LogicServer 业务逻辑服务

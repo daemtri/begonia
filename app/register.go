@@ -41,7 +41,7 @@ func serviceRegister() {
 	box.FlagSet().IntVar(&ppid, "ppid", 0, "")
 	box.FlagSet().StringVar(&namespace, "namespace", "", "")
 
-	box.UseInit(func(ctx context.Context) error {
+	box.UseInit(func(_ context.Context) error {
 		runtime.SetNamespace(namespace)
 		return nil
 	})

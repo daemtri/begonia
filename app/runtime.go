@@ -68,6 +68,12 @@ func newModuleRuntime(name string, module Module) func(opts *moduleOption) (*mod
 	}
 }
 
+// GetModuleName 获取当前Module的名称
+func GetModuleName(ctx context.Context) string {
+	mr := moduleRuntimeFromCtx(ctx)
+	return mr.moduleName
+}
+
 // GetLogger 获取日志
 func GetLogger(ctx context.Context) *logx.Logger {
 	mr := moduleRuntimeFromCtx(ctx)

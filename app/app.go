@@ -53,7 +53,7 @@ func Run(name string) {
 	box.Provide[bootstrap.Engine](bootstrap.NewEngine)
 
 	// 注册app相关功能
-	box.Provide[LogicServiceRegistrar](newLogicServiceRegistrarImpl)
+	box.Provide[GrpcServiceRegistrar](newGrpcServiceRegistrarImpl)
 	box.Provide[contract.PubSubConsumerRegistrar](&mockPubSubConsumerRegistrar{})
 	box.Provide[contract.TaskProcessorRegistrar](&mockTaskProcessorRegistrar{})
 	box.Provide[*resources.Manager](resources.NewManager, box.WithFlags("resources"))

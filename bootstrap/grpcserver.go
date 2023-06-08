@@ -32,6 +32,7 @@ func (gs *GrpcServer) BroadCastAddr() string {
 }
 
 func (gs *GrpcServer) Run(ctx context.Context) error {
+	logger.Info("grpc server listening on %s", gs.addr)
 	lis, err := net.Listen("tcp", gs.addr)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
@@ -40,5 +41,6 @@ func (gs *GrpcServer) Run(ctx context.Context) error {
 }
 
 func (gs *GrpcServer) GracefulStop() {
+	logger.Info("grpc server shutdown")
 	gs.server.GracefulStop()
 }

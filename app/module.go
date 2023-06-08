@@ -64,18 +64,18 @@ func RegisterModule[T Module](name string, m T) {
 	modules[name] = m
 }
 
-type LogicServiceRegistrar interface {
+type GrpcServiceRegistrar interface {
 	contract.RouteRegistrar
 	grpc.ServiceRegistrar
 }
 
-type LogicServiceRegistrarImpl struct {
+type grpcServiceRegistrarImpl struct {
 	contract.RouteRegistrar
 	grpc.ServiceRegistrar
 }
 
-func newLogicServiceRegistrarImpl(rr *bootstrap.RouteRegistrar, sr *bootstrap.ServiceRegistrar) (*LogicServiceRegistrarImpl, error) {
-	lsri := &LogicServiceRegistrarImpl{
+func newGrpcServiceRegistrarImpl(rr *bootstrap.RouteRegistrar, sr *bootstrap.ServiceRegistrar) (*grpcServiceRegistrarImpl, error) {
+	lsri := &grpcServiceRegistrarImpl{
 		RouteRegistrar:   rr,
 		ServiceRegistrar: sr,
 	}
@@ -85,15 +85,15 @@ func newLogicServiceRegistrarImpl(rr *bootstrap.RouteRegistrar, sr *bootstrap.Se
 type Registry struct {
 	runtime *moduleRuntime
 	ci      *bootstrap.ContextInjector
-	logic   LogicServiceRegistrar
+	grpc    GrpcServiceRegistrar
 
 	contract.PubSubConsumerRegistrar
 	contract.TaskProcessorRegistrar
 }
 
-func newRegistry(lsr LogicServiceRegistrar, psr contract.PubSubConsumerRegistrar, tpr contract.TaskProcessorRegistrar, ci *bootstrap.ContextInjector) (Registry, error) {
+func newRegistry(lsr GrpcServiceRegistrar, psr contract.PubSubConsumerRegistrar, tpr contract.TaskProcessorRegistrar, ci *bootstrap.ContextInjector) (Registry, error) {
 	reg := Registry{
-		logic:                   lsr,
+		grpc:                    lsr,
 		PubSubConsumerRegistrar: psr,
 		TaskProcessorRegistrar:  tpr,
 		ci:                      ci,
@@ -105,7 +105,7 @@ func (reg Registry) clone(mr *moduleRuntime) Registry {
 	return Registry{
 		runtime:                 mr,
 		ci:                      reg.ci,
-		logic:                   reg.logic,
+		grpc:                    reg.grpc,
 		PubSubConsumerRegistrar: reg.PubSubConsumerRegistrar,
 		TaskProcessorRegistrar:  reg.TaskProcessorRegistrar,
 	}
@@ -115,11 +115,11 @@ func (reg Registry) RegisterService(desc *grpc.ServiceDesc, impl any) {
 	reg.ci.Bind(desc.ServiceName, func(ctx context.Context) context.Context {
 		return withModuleRuntime(ctx, reg.runtime)
 	})
-	reg.logic.RegisterService(desc, impl)
+	reg.grpc.RegisterService(desc, impl)
 }
 
 func RegisterRoute[K ~int32, T proto.Message](reg Registry, msgID K, handleFunc func(ctx context.Context, req T) error) {
-	reg.logic.RegisterRoute(int32(msgID), func(ctx context.Context, req []byte) error {
+	reg.grpc.RegisterRoute(int32(msgID), func(ctx context.Context, req []byte) error {
 		var x T
 		v := x.ProtoReflect().New().Interface()
 		if req != nil {
