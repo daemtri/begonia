@@ -1,15 +1,39 @@
 package depency
 
 import (
+	"strings"
+
 	mapset "github.com/deckarep/golang-set/v2"
 )
 
 var (
-	config *Config
+	config *Config = &Config{
+		Allows: map[string]map[string]mapset.Set[string]{},
+	}
 )
 
 func SetConfig(c *Config) {
 	config = c
+}
+
+func SetModuleConfig(module string, rules []string) {
+	if _, ok := config.Allows[module]; !ok {
+		config.Allows[module] = map[string]mapset.Set[string]{}
+	}
+
+	for _, rule := range rules {
+		r := strings.SplitN(rule, ":", 2)
+		kind := r[0]
+		name := ""
+		if len(r) == 2 {
+			name = r[1]
+		}
+		if _, ok := config.Allows[module][kind]; !ok {
+			config.Allows[module][kind] = mapset.NewSet[string]()
+		}
+
+		config.Allows[module][kind].Add(name)
+	}
 }
 
 type Config struct {

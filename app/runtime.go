@@ -51,6 +51,11 @@ type moduleRuntime struct {
 	config     helper.OnceCell[any]
 }
 
+func (mr *moduleRuntime) init() error {
+	depency.SetModuleConfig(mr.moduleName, mr.opts.Dependecies)
+	return nil
+}
+
 func withModuleRuntime(ctx context.Context, mr *moduleRuntime) context.Context {
 	return context.WithValue(ctx, moduleRuntimeCtxKey, mr)
 }
@@ -65,11 +70,12 @@ func moduleRuntimeFromCtx(ctx context.Context) *moduleRuntime {
 
 func newModuleRuntime(name string, module Module) func(opts *moduleOption) (*moduleRuntime, error) {
 	return func(opts *moduleOption) (*moduleRuntime, error) {
-		return &moduleRuntime{
+		mr := &moduleRuntime{
 			moduleName: name,
 			opts:       opts,
 			module:     module,
-		}, nil
+		}
+		return mr, mr.init()
 	}
 }
 
@@ -102,7 +108,9 @@ func GetPubSub(ctx context.Context) contract.PubSubInterface {
 
 // GetServiceConn
 func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
-	// mr := moduleRuntimeFromCtx(ctx)
+	if !depency.Allow(GetModuleName(ctx), "app", name) {
+		panic(fmt.Errorf("module %s not allow to call app %s", GetModuleName(ctx), name))
+	}
 	return servicesConns.MustGetOrInit(name, func() grpc.ClientConnInterface {
 		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "grpc://", "")
 		if err != nil {
