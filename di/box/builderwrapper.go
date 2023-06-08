@@ -65,8 +65,9 @@ func newDynamicParamsFunctionBuilder[T any](fn any, opt any) Builder[T] {
 	if fnType.Kind() != reflect.Func {
 		panic("newDynamicParamsFunctionBuilder only supports function types got " + fmt.Sprintf("%T", fn))
 	}
-	if fnType.NumOut() != 2 {
-		panic("newDynamicParamsFunctionBuilder must return two parameters: (T,error) or (X,error), where X implements T, got " + fmt.Sprintf("%T", fn))
+	numOut := fnType.NumOut()
+	if numOut != 2 && numOut != 1 {
+		panic("newDynamicParamsFunctionBuilder must return two parameters: (T,error) or (X,error) or X, where X implements T, got " + fmt.Sprintf("%T", fn))
 	}
 	pTyp := reflectType[T]()
 	if pTyp.Kind() == reflect.Interface {
@@ -76,13 +77,14 @@ func newDynamicParamsFunctionBuilder[T any](fn any, opt any) Builder[T] {
 	} else if pTyp != fnType.Out(0) {
 		panic(fmt.Errorf("ProvideInject return value type %s != %s", fnType.Out(0), pTyp))
 	}
-	if fnType.Out(1) != errType {
+	if numOut == 2 && fnType.Out(1) != errType {
 		panic(fmt.Errorf("the second return value of the ProvideInject function must be %s", errType))
 	}
 
 	ib := &dynamicParamsFunctionBuilder[T]{
 		fnType:  fnType,
 		fnValue: reflect.ValueOf(fn),
+		numOut:  numOut,
 	}
 
 	var flagTyp reflect.Type
@@ -119,6 +121,7 @@ type dynamicParamsFunctionBuilder[T any] struct {
 	optionIndex int
 	fnValue     reflect.Value
 	fnType      reflect.Type
+	numOut      int
 }
 
 func (ib *dynamicParamsFunctionBuilder[T]) ValidateFlags() error {
@@ -144,9 +147,10 @@ func (ib *dynamicParamsFunctionBuilder[T]) Build(ctx context.Context) (T, error)
 	}
 
 	ret := ib.fnValue.Call(inValues)
-	if ret[1].Interface() == nil {
+	if ib.numOut == 1 || ret[1].Interface() == nil {
 		return ret[0].Interface().(T), nil
 	}
+
 	return emptyValue[T](), ret[1].Interface().(error)
 }
 
