@@ -225,7 +225,11 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T)) error 
 	go func() {
 		for {
 			select {
-			case cfg := <-ch:
+			case cfg, done := <-ch:
+				if done {
+					logger.Info("module config watch done", "name", mc.name)
+					return
+				}
 				newInstance, kind := mc.init()
 				if kind == reflect.Pointer {
 					if err := cfg.Decode(newInstance); err != nil {
