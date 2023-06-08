@@ -4,7 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"reflect"
+	"sync/atomic"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
 	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
@@ -19,18 +23,17 @@ type contextKey struct{ name string }
 
 var (
 	moduleRuntimeCtxKey = &contextKey{name: "module_runtime"}
-	global              = struct {
-		redisClient  helper.OnceMap[string, *redis.Client]
-		dbClient     helper.OnceMap[string, *sql.DB]
-		servicesConn helper.OnceMap[string, grpc.ClientConnInterface]
-	}{}
+
+	servicesConns     helper.OnceMap[string, grpc.ClientConnInterface]
 	grpcClientBuilder *grpcx.ClientBuilder
 	configWatcher     component.Configuration
+	resourcesManager  *resources.Manager
 )
 
 func initGlobal(ctx context.Context) error {
 	grpcClientBuilder = box.Invoke[*grpcx.ClientBuilder](ctx)
 	configWatcher = box.Invoke[component.Configuration](ctx)
+	resourcesManager = box.Invoke[*resources.Manager](ctx)
 	return nil
 }
 
@@ -98,7 +101,7 @@ func GetPubSub(ctx context.Context) contract.PubSubInterface {
 // GetServiceConn
 func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	// mr := moduleRuntimeFromCtx(ctx)
-	return global.servicesConn.MustGetOrInit(name, func() grpc.ClientConnInterface {
+	return servicesConns.MustGetOrInit(name, func() grpc.ClientConnInterface {
 		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "grpc://", "")
 		if err != nil {
 			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
@@ -110,4 +113,102 @@ func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 // GetUserInfo 获取用户信息
 func GetUserInfo(ctx context.Context) contract.UserInfoInterface {
 	panic("unimplement")
+}
+
+// GetDB  获取数据库
+func GetDB(ctx context.Context, name string) *sql.DB {
+	if !depency.Allow(GetModuleName(ctx), "db", name) {
+		panic(fmt.Errorf("module %s not allow to use db %s", GetModuleName(ctx), name))
+	}
+	db, err := resourcesManager.GetDB(ctx, name)
+	if err != nil {
+		panic(err)
+	}
+	return db
+}
+
+// GetRedis 获取redis
+func GetRedis(ctx context.Context, name string) *redis.Client {
+	if !depency.Allow(GetModuleName(ctx), "redis", name) {
+		panic(fmt.Errorf("module %s not allow to use redis %s", GetModuleName(ctx), name))
+	}
+	redis, err := resourcesManager.GetRedis(ctx, name)
+	if err != nil {
+		panic(err)
+	}
+	return redis
+}
+
+// moduleConfig 模块配置
+type moduleConfig[T any] struct {
+	name     string
+	init     func() (T, reflect.Kind)
+	instance atomic.Value
+}
+
+func (mc *moduleConfig[T]) preload(ctx context.Context) {
+	cfg, err := configWatcher.ReadConfig(ctx, mc.name)
+	if err != nil {
+		panic(err)
+	}
+	newInstance, kind := mc.init()
+	if kind == reflect.Pointer {
+		if err := cfg.Decode(newInstance); err != nil {
+			panic(err)
+		}
+	} else {
+		if err := cfg.Decode(&newInstance); err != nil {
+			panic(err)
+		}
+	}
+
+	mc.instance.Store(newInstance)
+}
+
+// MustGet 实现contract.ConfigInterface Instance
+func (mc *moduleConfig[T]) Instance() T {
+	return mc.instance.Load().(T)
+}
+
+// SpanWatch 实现contract.ConfigInterface SpanWatch接口
+func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T)) error {
+	ch, err := configWatcher.WatchConfig(ctx, mc.name)
+	if err != nil {
+		return err
+	}
+	go func() {
+		for {
+			select {
+			case cfg := <-ch:
+				newInstance, kind := mc.init()
+				if kind == reflect.Pointer {
+					if err := cfg.Decode(newInstance); err != nil {
+						panic(err)
+					}
+				} else {
+					if err := cfg.Decode(&newInstance); err != nil {
+						panic(err)
+					}
+				}
+				mc.instance.Store(newInstance)
+				setter(newInstance)
+			case <-ctx.Done():
+				logger.Info("module config watch done", "name", mc.name)
+			}
+		}
+	}()
+	return nil
+}
+
+// GetConfig 获取配置
+func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
+	mr := moduleRuntimeFromCtx(ctx)
+	return mr.config.MustGetOrInit(func() any {
+		mc := &moduleConfig[T]{
+			name: fmt.Sprintf("module_%s", mr.moduleName),
+			init: helper.NewWithKind[T],
+		}
+		mc.preload(ctx)
+		return mc
+	}).(*moduleConfig[T])
 }
