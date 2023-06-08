@@ -49,9 +49,9 @@ type ServiceInterface interface {
 }
 
 type UserInfoInterface interface {
-	GetUserID() int32
-	GetTenantID() int32
-	FromGatewayID() string
-	GetGameID() int32
-	GetClientVersion() int32
+	GetUserID() uint32
+	GetTenantID() uint32
+	GetSource() string
+	GetGameID() uint32
+	GetVersion() uint32
 }

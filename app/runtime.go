@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"reflect"
+	"strconv"
 	"sync/atomic"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
@@ -17,6 +18,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 type contextKey struct{ name string }
@@ -110,9 +112,45 @@ func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	})
 }
 
+type userInfo struct {
+	md metadata.MD
+}
+
+func (u *userInfo) get(key string) string {
+	ret := u.md.Get("tenant_id")
+	if len(ret) == 0 {
+		panic(fmt.Errorf("no %s in metadata", key))
+	}
+	return ret[0]
+}
+
+func (u *userInfo) GetTenantID() uint32 {
+	return uint32(helper.Must(strconv.Atoi(u.get("tenant_id"))))
+}
+
+func (u *userInfo) GetUserID() uint32 {
+	return uint32(helper.Must(strconv.Atoi(u.get("user_id"))))
+}
+
+func (u *userInfo) GetGameID() uint32 {
+	return uint32(helper.Must(strconv.Atoi(u.get("game_id"))))
+}
+
+func (u *userInfo) GetSource() string {
+	return u.get("source")
+}
+
+func (u *userInfo) GetVersion() uint32 {
+	return uint32(helper.Must(strconv.Atoi(u.get("version"))))
+}
+
 // GetUserInfo 获取用户信息
 func GetUserInfo(ctx context.Context) contract.UserInfoInterface {
-	panic("unimplement")
+	md, exists := metadata.FromIncomingContext(ctx)
+	if !exists {
+		panic(fmt.Errorf("no metadata in context"))
+	}
+	return &userInfo{md: md}
 }
 
 // GetDB  获取数据库
