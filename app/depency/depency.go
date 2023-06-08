@@ -12,15 +12,13 @@ var (
 	}
 )
 
-func SetConfig(c *Config) {
-	config = c
-}
-
 func SetModuleConfig(module string, rules []string) {
-	if _, ok := config.Allows[module]; !ok {
-		config.Allows[module] = map[string]mapset.Set[string]{}
+	if _, ok := config.Allows[module]; ok {
+		// 保证由框架设置的规则，不能被外部覆盖
+		panic("module config already set")
 	}
 
+	config.Allows[module] = map[string]mapset.Set[string]{}
 	for _, rule := range rules {
 		r := strings.SplitN(rule, ":", 2)
 		kind := r[0]
