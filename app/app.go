@@ -1,6 +1,8 @@
 package app
 
 import (
+	"net/http"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
@@ -15,6 +17,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/files"
 	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/k8s"
 	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/servicemesh"
+	"github.com/go-chi/chi/v5"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -50,7 +53,8 @@ func Run(name string) {
 	box.Provide[*bootstrap.ServiceRegistrar](bootstrap.NewServiceRegistrar)
 	box.Provide[*bootstrap.ContextInjector](bootstrap.NewContextInjector)
 	box.Provide[*bootstrap.BusinessService](bootstrap.NewBusinessService)
-	box.Provide[bootstrap.Server](bootstrap.NewLogicServer, box.WithFlags("server"))
+	box.Provide[bootstrap.Server](bootstrap.NewLogicServer, box.WithFlags("grpc-server"), box.WithName("grpc"))
+	box.Provide[bootstrap.Server](bootstrap.NewHttpServer, box.WithFlags("http-server"), box.WithName("http"))
 	box.Provide[bootstrap.Engine](bootstrap.NewEngine)
 
 	// 注册app相关功能
@@ -58,7 +62,9 @@ func Run(name string) {
 	box.Provide[contract.PubSubConsumerRegistrar](&mockPubSubConsumerRegistrar{})
 	box.Provide[contract.TaskProcessorRegistrar](&mockTaskProcessorRegistrar{})
 	box.Provide[*resources.Manager](resources.NewManager, box.WithFlags("resources"))
-	box.Provide[Registry](newRegistry)
+	box.Provide[chi.Router](newHttpServerMux)
+	box.Provide[http.Handler](func(r chi.Router) http.Handler { return r })
+	box.Provide[*registry](newRegistry)
 
 	// 初始化module和服务注册
 	box.UseInit(initModules())
