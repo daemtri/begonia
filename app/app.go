@@ -1,6 +1,7 @@
 package app
 
 import (
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
@@ -55,6 +56,7 @@ func Run(name string) {
 	box.Provide[LogicServiceRegistrar](newLogicServiceRegistrarImpl)
 	box.Provide[contract.PubSubConsumerRegistrar](&mockPubSubConsumerRegistrar{})
 	box.Provide[contract.TaskProcessorRegistrar](&mockTaskProcessorRegistrar{})
+	box.Provide[*resources.Manager](resources.NewManager, box.WithFlags("resources"))
 	box.Provide[Registry](newRegistry)
 
 	// 初始化module和服务注册

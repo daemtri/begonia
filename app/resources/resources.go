@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"sync"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
@@ -66,25 +65,33 @@ func (r *Config) GetKafkaConfig(name string) *KafkaConfig {
 type Manager struct {
 	configor component.Configuration
 	config   *Config
-	once     sync.Once
 
 	dbClients    helper.OnceMap[string, *sql.DB]
 	redisClients helper.OnceMap[string, *redis.Client]
 	kafkaClients helper.OnceMap[string, *kafka.Conn]
 }
 
-func NewManager(configor component.Configuration) (*Manager, error) {
-	return &Manager{configor: configor}, nil
+func NewManager(ctx context.Context, configor component.Configuration) (*Manager, error) {
+	m := &Manager{configor: configor}
+	return m, m.init(ctx)
 }
 
-func (r *Manager) init(ctx context.Context) {
-	r.once.Do(func() {})
+func (m *Manager) init(ctx context.Context) error {
+	cfg, err := m.configor.ReadConfig(ctx, "resources")
+	if err != nil {
+		return nil
+	}
+	var config Config
+	if err := cfg.Decode(&config); err != nil {
+		return err
+	}
+	m.config = &config
+	return nil
 }
 
-func (r *Manager) GetDB(ctx context.Context, name string) (*sql.DB, error) {
-	r.init(ctx)
-	return r.dbClients.GetOrInit(name, func() (*sql.DB, error) {
-		cfg := r.config.GetDBConfig(name)
+func (m *Manager) GetDB(ctx context.Context, name string) (*sql.DB, error) {
+	return m.dbClients.GetOrInit(name, func() (*sql.DB, error) {
+		cfg := m.config.GetDBConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("db name %s config not found", name)
 		}
@@ -96,10 +103,9 @@ func (r *Manager) GetDB(ctx context.Context, name string) (*sql.DB, error) {
 	})
 }
 
-func (r *Manager) GetRedis(ctx context.Context, name string) (*redis.Client, error) {
-	r.init(ctx)
-	return r.redisClients.GetOrInit(name, func() (*redis.Client, error) {
-		cfg := r.config.GetRedisConfig(name)
+func (m *Manager) GetRedis(ctx context.Context, name string) (*redis.Client, error) {
+	return m.redisClients.GetOrInit(name, func() (*redis.Client, error) {
+		cfg := m.config.GetRedisConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("redis name %s config not found", name)
 		}
@@ -112,10 +118,9 @@ func (r *Manager) GetRedis(ctx context.Context, name string) (*redis.Client, err
 	})
 }
 
-func (r *Manager) GetKafka(ctx context.Context, name string) (*kafka.Conn, error) {
-	r.init(ctx)
-	return r.kafkaClients.GetOrInit(name, func() (*kafka.Conn, error) {
-		cfg := r.config.GetKafkaConfig(name)
+func (m *Manager) GetKafka(ctx context.Context, name string) (*kafka.Conn, error) {
+	return m.kafkaClients.GetOrInit(name, func() (*kafka.Conn, error) {
+		cfg := m.config.GetKafkaConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("kafka name %s config not found", name)
 		}
