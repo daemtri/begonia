@@ -278,7 +278,7 @@ func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
 	return mr.config.MustGetOrInit(func() any {
 		mc := &moduleConfig[T]{
 			name: fmt.Sprintf("module_%s", mr.moduleName),
-			init: helper.NewWithKind[T],
+			init: helper.ZeroWithKind[T],
 		}
 		mc.preload(ctx)
 		return mc
