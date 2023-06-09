@@ -125,6 +125,8 @@ func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-c
 	if err := helper.Chain(ch).TrySend(c.readFile(configFile)); err != nil {
 		c.log.Warn("首次读取配置出错", "file", configFile, "error", err)
 	}
+
+	c.log.Info("添加监听配置文件", "file", configFile, "path", configFile)
 	if err := c.watcher.Add(configFile); err != nil {
 		c.log.Warn("监听配置出错", "file", configFile, "error", err)
 	}
@@ -141,10 +143,11 @@ func (c *Configuration) watchConfig(ctx context.Context, configFile string) (<-c
 					close(ch)
 					return
 				}
-				c.log.Info("配置文件更新", "event", event)
+				c.log.Info("配置文件更新", "event", event.Name)
 				if err := helper.Chain(ch).TrySend(c.readFile(configFile)); err != nil {
 					c.log.Warn("配置文件更新出错", "event", event, "error", err)
 				}
+				c.log.Info("配置文件更新队列发送成功", "event", event.Name)
 			}
 		}
 	}()

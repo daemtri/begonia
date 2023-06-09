@@ -12,5 +12,5 @@ func GetLogger(name string) *Logger {
 	return slog.New(slog.HandlerOptions{
 		AddSource: true,
 		Level:     l,
-	}.NewJSONHandler(os.Stdout)).With("logger", name)
+	}.NewTextHandler(os.Stdout)).With("logger", name)
 }

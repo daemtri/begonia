@@ -216,38 +216,60 @@ func (mc *moduleConfig[T]) Instance() T {
 	return mc.instance.Load().(T)
 }
 
+func (mc *moduleConfig[T]) parserConfig(dec component.ConfigDecoder) error {
+	newInstance, kind := mc.init()
+	if kind == reflect.Pointer {
+		if err := dec.Decode(newInstance); err != nil {
+			return err
+		}
+	} else {
+		if err := dec.Decode(&newInstance); err != nil {
+			return err
+		}
+	}
+	mc.instance.Store(newInstance)
+	return nil
+}
+
 // SpanWatch 实现contract.ConfigInterface SpanWatch接口
-func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T)) error {
+func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) {
+	cfg, err := configWatcher.ReadConfig(ctx, mc.name)
+	if err != nil {
+		panic(fmt.Errorf("read config error: %w", err))
+	}
+	if err := mc.parserConfig(cfg); err != nil {
+		panic(fmt.Errorf("parse config error: %w", err))
+	}
+	if err := setter(mc.Instance()); err != nil {
+		panic(fmt.Errorf("set config error: %w", err))
+	}
+	logger.Info("module config watch start", "name", mc.name)
 	ch, err := configWatcher.WatchConfig(ctx, mc.name)
 	if err != nil {
-		return err
+		panic(fmt.Errorf("watch config error: %w", err))
 	}
 	go func() {
 		for {
 			select {
-			case cfg, done := <-ch:
-				if done {
+			case cfg, ok := <-ch:
+				if !ok {
 					logger.Info("module config watch done", "name", mc.name)
 					return
 				}
-				newInstance, kind := mc.init()
-				if kind == reflect.Pointer {
-					if err := cfg.Decode(newInstance); err != nil {
-						panic(err)
-					}
-				} else {
-					if err := cfg.Decode(&newInstance); err != nil {
-						panic(err)
-					}
+				if err := mc.parserConfig(cfg); err != nil {
+					logger.Error("module config watch parse error", "name", mc.name, "error", err)
 				}
-				mc.instance.Store(newInstance)
-				setter(newInstance)
+				if err := setter(mc.Instance()); err != nil {
+					logger.Error("module config watch setter error", "name", mc.name, "error", err)
+					// TODO: terminate app
+				} else {
+					logger.Info("module config watch setter success", "name", mc.name)
+				}
 			case <-ctx.Done():
 				logger.Info("module config watch done", "name", mc.name)
 			}
 		}
 	}()
-	return nil
 }
 
 // GetConfig 获取配置
