@@ -51,6 +51,10 @@ func (ls *LogicServer) init() error {
 	return nil
 }
 
+func (ls *LogicServer) Enabled() bool {
+	return len(ls.GrpcServer.server.GetServiceInfo()) > 1 || len(ls.reg.services) > 0
+}
+
 type ContextInjector struct {
 	services map[string]func(ctx context.Context) context.Context
 }

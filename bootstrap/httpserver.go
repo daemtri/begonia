@@ -49,7 +49,7 @@ func (gs *HttpServer) BroadCastAddr() string {
 }
 
 func (gs *HttpServer) Run(ctx context.Context) error {
-	logger.Info("http server listening on %s", gs.addr)
+	logger.Info("http server listening", "addr", gs.addr)
 	lis, err := net.Listen("tcp", gs.addr)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)

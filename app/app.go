@@ -55,6 +55,12 @@ func Run(name string) {
 	box.Provide[*bootstrap.BusinessService](bootstrap.NewBusinessService)
 	box.Provide[bootstrap.Server](bootstrap.NewLogicServer, box.WithFlags("grpc-server"), box.WithName("grpc"))
 	box.Provide[bootstrap.Server](bootstrap.NewHttpServer, box.WithFlags("http-server"), box.WithName("http"))
+	box.Provide[bootstrap.Runable](func(server bootstrap.Server) bootstrap.Runable { return server },
+		box.WithName("grpc"), box.WithSelect[bootstrap.Server]("grpc"),
+	)
+	box.Provide[bootstrap.Runable](func(server bootstrap.Server) bootstrap.Runable { return server },
+		box.WithName("http"), box.WithSelect[bootstrap.Server]("http"),
+	)
 	box.Provide[bootstrap.Engine](bootstrap.NewEngine)
 
 	// 注册app相关功能
@@ -64,11 +70,11 @@ func Run(name string) {
 	box.Provide[*resources.Manager](resources.NewManager, box.WithFlags("resources"))
 	box.Provide[chi.Router](newHttpServerMux)
 	box.Provide[http.Handler](func(r chi.Router) http.Handler { return r })
-	box.Provide[*registry](newRegistry)
+	box.Provide[*Integrator](newIntegrator)
+	box.Provide[bootstrap.Runable](NewServiceRegisterRunable, box.WithName("register"))
 
 	// 初始化module和服务注册
 	box.UseInit(initModules())
-	box.UseInit(initRegisterApp)
 
 	if err := box.Bootstrap[bootstrap.Engine](
 		yamlconfig.Init(),

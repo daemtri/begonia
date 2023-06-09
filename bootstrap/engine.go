@@ -12,11 +12,15 @@ var (
 	logger = logx.GetLogger("bootstrap")
 )
 
-type Server interface {
+type Runable interface {
 	Enabled() bool
-	BroadCastAddr() string
 	Run(ctx context.Context) error
 	GracefulStop()
+}
+
+type Server interface {
+	Runable
+	BroadCastAddr() string
 }
 
 type Engine interface {
@@ -25,18 +29,18 @@ type Engine interface {
 
 func NewEngine(ctx context.Context) (Engine, error) {
 	return &EngineImpl{
-		servers: container.Invoke[container.Set[Server]](ctx),
+		runables: container.Invoke[container.Set[Runable]](ctx),
 	}, nil
 }
 
 type EngineImpl struct {
-	servers []Server
+	runables []Runable
 }
 
 func (engine *EngineImpl) Run(ctx context.Context) error {
 	group, ctx := errgroup.WithContext(ctx)
-	for _, server := range engine.servers {
-		s := server
+	for _, runable := range engine.runables {
+		s := runable
 		if s.Enabled() {
 			group.Go(func() error { return s.Run(ctx) })
 		}
@@ -45,9 +49,9 @@ func (engine *EngineImpl) Run(ctx context.Context) error {
 	group.Go(func() error {
 		defer logx.Recover(logger)
 		<-ctx.Done()
-		for _, server := range engine.servers {
-			if server.Enabled() {
-				server.GracefulStop()
+		for _, runable := range engine.runables {
+			if runable.Enabled() {
+				runable.GracefulStop()
 			}
 		}
 		return nil

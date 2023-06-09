@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"net"
 	"net/url"
 	"os"
 	"os/signal"
@@ -77,9 +76,11 @@ func serviceRegister() {
 	}
 }
 
-func initRegisterApp(ctx context.Context) error {
-	servers := box.Invoke[container.Set[bootstrap.Server]](ctx)
+func initRegisterApp(ctx context.Context, discovery component.Discovery, servers []bootstrap.Server) error {
 	for i := range servers {
+		if !servers[i].Enabled() {
+			continue
+		}
 		addr := servers[i].BroadCastAddr()
 		parsedAddr, err := url.Parse(addr)
 		if err != nil {
@@ -108,7 +109,6 @@ func initRegisterApp(ctx context.Context) error {
 		"metadata", runtime.GetServiceMetadata(),
 	)
 
-	discovery := box.Invoke[component.Discovery](ctx)
 	if enableSideCarMode {
 		ses, err := json.Marshal(runtime.GetServiceEntry())
 		if err != nil {
@@ -159,48 +159,6 @@ func getBroadCastHost() (string, error) {
 	return broadCastHost, nil
 }
 
-func dialAndRegister(ctx context.Context, discovery component.Discovery, se component.ServiceEntry) {
-	logger.Info("开始服务检测",
-		"name", se.Name,
-		"id", se.ID,
-		"endpoints", se.Endpoints,
-		"metadata", se.Metadata,
-	)
-	checked := map[string]struct{}{}
-	for i := 0; i < 3; i++ {
-		for i := range se.Endpoints {
-			if _, ok := checked[se.Endpoints[i]]; ok {
-				continue
-			}
-			u, err := url.Parse(se.Endpoints[i])
-			if err != nil {
-				panic("解析endpoint链接失败:" + se.Endpoints[i])
-			}
-			conn, err := net.DialTimeout("tcp", u.Host, 3*time.Second)
-			if err != nil {
-				logger.Warn("endpoint检测失败", "endpoint", se.Endpoints[i], "error", err)
-				continue
-			}
-			if conn != nil {
-				checked[se.Endpoints[i]] = struct{}{}
-			}
-		}
-		if len(checked) == len(se.Endpoints) {
-			break
-		}
-		time.Sleep(time.Millisecond * 200)
-	}
-	logger.Info("开始服务注册",
-		"name", se.Name,
-		"id", se.ID,
-		"endpoints", se.Endpoints,
-		"metadata", se.Metadata,
-	)
-	if err := discovery.Register(ctx, runtime.GetServiceEntry()); err != nil {
-		panic(err)
-	}
-}
-
 func getStringOpt(name string) string {
 	fs := flag.NewFlagSet("get-opt", flag.ContinueOnError)
 	var val string
@@ -219,4 +177,32 @@ func getStringsOpt(name string) []string {
 		panic(err)
 	}
 	return val
+}
+
+type serviceRegisterRunable struct {
+	servers   []bootstrap.Server
+	discovery component.Discovery
+}
+
+func NewServiceRegisterRunable(ctx context.Context) *serviceRegisterRunable {
+	return &serviceRegisterRunable{
+		servers:   box.Invoke[container.Set[bootstrap.Server]](ctx),
+		discovery: box.Invoke[component.Discovery](ctx),
+	}
+}
+
+func (s *serviceRegisterRunable) Run(ctx context.Context) error {
+	if err := initRegisterApp(ctx, s.discovery, s.servers); err != nil {
+		return err
+	}
+	<-ctx.Done()
+	return nil
+}
+
+func (s *serviceRegisterRunable) Enabled() bool {
+	return true
+}
+
+func (s *serviceRegisterRunable) GracefulStop() {
+
 }

@@ -18,10 +18,9 @@ import (
 var (
 	modules = make(map[string]Module)
 
-	// globalRegistry is the global registry for all modules
-	globalRegistry    *registry
-	currentModule     *moduleRuntime
-	currentHttpRouter chi.Router
+	// globalIntegrator is the global Integrator for all modules
+	globalIntegrator *Integrator
+	currentModule    *moduleRuntime
 )
 
 func initModules() func(ctx context.Context) error {
@@ -32,7 +31,7 @@ func initModules() func(ctx context.Context) error {
 		if err := initGlobal(ctx); err != nil {
 			return err
 		}
-		globalRegistry = box.Invoke[*registry](ctx)
+		globalIntegrator = box.Invoke[*Integrator](ctx)
 
 		modules := box.Invoke[[]*moduleRuntime](ctx)
 		for i := range modules {
@@ -40,13 +39,7 @@ func initModules() func(ctx context.Context) error {
 			if err := mr.module.Init(withModuleRuntime(ctx, mr)); err != nil {
 				return err
 			}
-			currentModule = mr
-			globalRegistry.http.Route("/"+mr.moduleName, func(r chi.Router) {
-				currentHttpRouter = r
-				mr.module.Integrate()
-				currentHttpRouter = nil
-			})
-			currentModule = nil
+			globalIntegrator.integrate(mr)
 		}
 		go func() {
 			<-ctx.Done()
@@ -65,7 +58,7 @@ type Module interface {
 	// Init 模块初始化
 	Init(ctx context.Context) error
 	// Integrate 注册业务服务处理器
-	Integrate()
+	Integrate(it Integrator)
 	// Destroy
 	Destroy(ctx context.Context) error
 }
@@ -83,31 +76,51 @@ type GrpcServiceRegistrar interface {
 }
 
 type grpcServiceRegistrarImpl struct {
+	ci      *bootstrap.ContextInjector
 	route   contract.RouteRegistrar
 	service grpc.ServiceRegistrar
 }
 
-func newGrpcServiceRegistrarImpl(rr *bootstrap.RouteRegistrar, sr *bootstrap.ServiceRegistrar) (*grpcServiceRegistrarImpl, error) {
+func newGrpcServiceRegistrarImpl(
+	rr *bootstrap.RouteRegistrar,
+	sr *bootstrap.ServiceRegistrar,
+	ci *bootstrap.ContextInjector,
+) (*grpcServiceRegistrarImpl, error) {
 	lsri := &grpcServiceRegistrarImpl{
 		route:   rr,
 		service: sr,
+		ci:      ci,
 	}
 	return lsri, nil
 }
 
 func (gr *grpcServiceRegistrarImpl) RegisterService(desc *grpc.ServiceDesc, impl any) {
 	mr := currentModule
-	globalRegistry.ci.Bind(desc.ServiceName, func(ctx context.Context) context.Context {
+	gr.ci.Bind(desc.ServiceName, func(ctx context.Context) context.Context {
 		return withModuleRuntime(ctx, mr)
 	})
 	gr.service.RegisterService(desc, impl)
 }
 
-func (gr *grpcServiceRegistrarImpl) RegisterRoute(msgID int32, handleFunc func(ctx context.Context, req []byte) error) {
+func Route[K ~int32, T proto.Message](msgID K, handleFunc func(ctx context.Context, req T) error) contract.RouteCell {
 	mr := currentModule
-	gr.route.RegisterRoute(msgID, func(ctx context.Context, req []byte) error {
-		return handleFunc(withModuleRuntime(ctx, mr), req)
-	})
+	return contract.RouteCell{
+		MsgID: int32(msgID),
+		HandleFunc: func(ctx context.Context, req []byte) error {
+			var x T
+			v := x.ProtoReflect().New().Interface()
+			if req != nil {
+				if err := proto.Unmarshal(req, v); err != nil {
+					return status.Error(codes.InvalidArgument, fmt.Sprintf("message id %d does not match the message type, error %s", msgID, err))
+				}
+			}
+			return handleFunc(withModuleRuntime(ctx, mr), v.(T))
+		},
+	}
+}
+
+func (gr *grpcServiceRegistrarImpl) RegisterRoute(routes ...contract.RouteCell) {
+	gr.route.RegisterRoute(routes...)
 }
 
 type httpServerMux struct {
@@ -121,52 +134,6 @@ func newHttpServerMux() (*httpServerMux, error) {
 }
 
 func (mux *httpServerMux) Enabled() bool {
+	logger.Info("http server enable check, routes", "routes", len(mux.Routes()))
 	return len(mux.Routes()) > 0
-}
-
-type registry struct {
-	ci   *bootstrap.ContextInjector
-	grpc GrpcServiceRegistrar
-	http chi.Router
-
-	contract.PubSubConsumerRegistrar
-	contract.TaskProcessorRegistrar
-}
-
-func newRegistry(
-	lsr GrpcServiceRegistrar,
-	psr contract.PubSubConsumerRegistrar,
-	tpr contract.TaskProcessorRegistrar,
-	ci *bootstrap.ContextInjector,
-	mux chi.Router,
-) (*registry, error) {
-	reg := &registry{
-		grpc:                    lsr,
-		PubSubConsumerRegistrar: psr,
-		TaskProcessorRegistrar:  tpr,
-		ci:                      ci,
-		http:                    mux,
-	}
-	return reg, nil
-}
-
-func Http() chi.Router {
-	return currentHttpRouter
-}
-
-func Grpc() GrpcServiceRegistrar {
-	return globalRegistry.grpc
-}
-
-func RegisterRoute[K ~int32, T proto.Message](msgID K, handleFunc func(ctx context.Context, req T) error) {
-	Grpc().RegisterRoute(int32(msgID), func(ctx context.Context, req []byte) error {
-		var x T
-		v := x.ProtoReflect().New().Interface()
-		if req != nil {
-			if err := proto.Unmarshal(req, v); err != nil {
-				return status.Error(codes.InvalidArgument, fmt.Sprintf("message id %d does not match the message type, error %s", msgID, err))
-			}
-		}
-		return handleFunc(ctx, v.(T))
-	})
 }

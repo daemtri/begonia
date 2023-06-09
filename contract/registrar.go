@@ -2,8 +2,14 @@ package contract
 
 import "context"
 
+// RouteCell please use app.Route(msgid,handleFunc)
+type RouteCell struct {
+	MsgID      int32
+	HandleFunc func(ctx context.Context, req []byte) error
+}
+
 type RouteRegistrar interface {
-	RegisterRoute(msgID int32, handleFunc func(ctx context.Context, req []byte) error)
+	RegisterRoute(routes ...RouteCell)
 }
 
 // TaskProcessorRegistrar

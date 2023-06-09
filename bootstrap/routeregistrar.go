@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"context"
 	"fmt"
+
+	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 )
 
 // RouteRegistrar 路由注册表
@@ -16,9 +18,11 @@ func NewRouteRegistrar() (*RouteRegistrar, error) {
 	}, nil
 }
 
-func (rr *RouteRegistrar) RegisterRoute(msgID int32, handleFunc func(ctx context.Context, req []byte) error) {
-	if _, ok := rr.routes[msgID]; ok {
-		panic(fmt.Errorf("route %d already registered", msgID))
+func (rr *RouteRegistrar) RegisterRoute(routes ...contract.RouteCell) {
+	for _, route := range routes {
+		if _, ok := rr.routes[route.MsgID]; ok {
+			panic(fmt.Errorf("route %d already registered", route.MsgID))
+		}
+		rr.routes[route.MsgID] = route.HandleFunc
 	}
-	rr.routes[msgID] = handleFunc
 }
