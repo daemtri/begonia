@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
@@ -106,8 +107,8 @@ func GetScheduler(ctx context.Context) contract.Scheduler {
 	panic("unimplement")
 }
 
-// GetPubSub 获取消息队列
-func GetPubSub(ctx context.Context) contract.PubSubInterface {
+// GetMsgPublisher 获取消息队列
+func GetMsgPublisher(ctx context.Context) pubsub.Publisher {
 	panic("unimplement")
 }
 

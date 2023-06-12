@@ -3,11 +3,13 @@ package app
 import (
 	"net/http"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/yamlconfig"
+	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
 	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/tracing"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
@@ -66,6 +68,8 @@ func Run(name string) {
 
 	// 注册app相关功能
 	box.Provide[GrpcServiceRegistrar](newGrpcServiceRegistrarImpl)
+	box.Provide[*kafka.Producer](kafka.NewProducer, box.WithFlags("kafka-producer"))
+	box.Provide[pubsub.Publisher](pubsub.NewKafkaPublisher)
 	box.Provide[contract.PubSubConsumerRegistrar](&mockPubSubConsumerRegistrar{})
 	box.Provide[contract.TaskProcessorRegistrar](&mockTaskProcessorRegistrar{})
 	box.Provide[*resources.Manager](resources.NewManager, box.WithFlags("resources"))
