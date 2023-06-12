@@ -196,3 +196,21 @@ func (l *Locker) Unlock() {
 		l.Logger.Error("failed to release lock", "error", err, "name", l.key)
 	}
 }
+
+func (l *Locker) Do(fn func(ctx context.Context) error) error {
+	ctx, err := l.Lock()
+	if err != nil {
+		return err
+	}
+	defer l.Unlock()
+	return fn(ctx)
+}
+
+func (l *Locker) TryDo(fn func(ctx context.Context) error) error {
+	ctx, err := l.TryLock()
+	if err != nil {
+		return err
+	}
+	defer l.Unlock()
+	return fn(ctx)
+}

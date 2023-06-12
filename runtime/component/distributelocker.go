@@ -16,7 +16,11 @@ type Locker interface {
 	Lock() (context.Context, error)
 	// Unlock 对互斥锁进行解锁，并清理与互斥锁相关联的锁条目。
 	// ctx 参数用于发送/接收 Txn RPC。
+
 	Unlock()
+
+	TryDo(f func(context.Context) error) error
+	Do(f func(context.Context) error) error
 }
 
 type DistrubutedLocker interface {
