@@ -94,7 +94,9 @@ func GetLogger(ctx context.Context) *logx.Logger {
 }
 
 // GetLocker 获取分布式锁
-func GetLocker(ctx context.Context, key string) contract.DistrubutedLocker {
+// 在同一个ctx上获取同一个key的锁，会导致死锁
+// 使用 locker.Lock() 或者 locker.TryLocker()返回的ctx获取锁，可以实现可重入锁的功能
+func GetLocker(ctx context.Context, key string) component.Locker {
 	// mr := moduleRuntimeFromCtx(ctx)
 	return distrubutedLocker.GetLock(ctx, key)
 }

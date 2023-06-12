@@ -20,5 +20,8 @@ type Locker interface {
 }
 
 type DistrubutedLocker interface {
+	// GetLock 获取一个分布式锁，key 为锁的名称
+	// 在同一个ctx上获取同一个key的锁，会导致死锁
+	// 使用 locker.Lock() 或者 locker.TryLocker()返回的ctx获取锁，可以实现可重入锁的功能
 	GetLock(ctx context.Context, key string) Locker
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"google.golang.org/grpc"
 )
 
@@ -33,8 +32,6 @@ type ConfigInterface[T any] interface {
 	// Watch 用于监听配置项的变化。
 	SpanWatch(ctx context.Context, fn func(T) error)
 }
-
-type DistrubutedLocker = component.Locker
 
 type Notifier interface {
 }
