@@ -54,6 +54,7 @@ func Handle[T any, K any](fn func(ctx context.Context, input T) (out K, err erro
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		w.Header().Set("X-Error-Code", "0")
 		renderJSON(w, ret)
 	}
 }
