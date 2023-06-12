@@ -29,6 +29,7 @@ var (
 	servicesConns     helper.OnceMap[string, grpc.ClientConnInterface]
 	grpcClientBuilder *grpcx.ClientBuilder
 	configWatcher     component.Configuration
+	distrubutedLocker component.DistrubutedLocker
 	resourcesManager  *resources.Manager
 )
 
@@ -36,6 +37,7 @@ func initGlobal(ctx context.Context) error {
 	grpcClientBuilder = box.Invoke[*grpcx.ClientBuilder](ctx)
 	configWatcher = box.Invoke[component.Configuration](ctx)
 	resourcesManager = box.Invoke[*resources.Manager](ctx)
+	distrubutedLocker = box.Invoke[component.DistrubutedLocker](ctx)
 	return nil
 }
 
@@ -92,8 +94,9 @@ func GetLogger(ctx context.Context) *logx.Logger {
 }
 
 // GetLocker 获取分布式锁
-func GetLocker(ctx context.Context) contract.DistrubutedLocker {
-	panic("unimplement")
+func GetLocker(ctx context.Context, key string) contract.DistrubutedLocker {
+	// mr := moduleRuntimeFromCtx(ctx)
+	return distrubutedLocker.GetLock(ctx, key)
 }
 
 // GetScheduler 获取定时器
