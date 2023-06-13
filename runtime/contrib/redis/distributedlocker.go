@@ -105,7 +105,7 @@ var lockerContextKey = &struct{ name string }{name: "redis-locker"}
 func (l *Locker) tryLockFromContext() bool {
 	value := l.ctx.Value(lockerContextKey)
 	if value == nil {
-		l.lockMap = mapset.NewSet(Name)
+		l.lockMap = mapset.NewSet(l.key)
 		return false
 	}
 	lockMap, ok := value.(mapset.Set[string])
@@ -195,6 +195,7 @@ func (l *Locker) Unlock() {
 	if err != nil {
 		l.Logger.Error("failed to release lock", "error", err, "name", l.key)
 	}
+	l.lockMap.Remove(l.key)
 }
 
 func (l *Locker) Do(fn func(ctx context.Context) error) error {
