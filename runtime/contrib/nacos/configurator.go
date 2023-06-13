@@ -37,19 +37,19 @@ func (c *ConfiguratorBootloader) Destroy() error {
 }
 
 func (c *ConfiguratorBootloader) AddFlags(fs *flag.FlagSet) {
-	flag.Uint64Var(&c.TimeoutMs, "timeout_ms", 10000, "timeout for requesting Nacos server, default value is")
-	flag.StringVar(&c.NamespaceId, "namespace_id", "", "the namespaceId of Nacos")
-	flag.StringVar(&c.Endpoint, "endpoint", "", "the endpoint for ACM. https://help.aliyun.com/document_detail/130146.html")
-	flag.StringVar(&c.RegionId, "region_id", "", "the regionId for ACM & KMS")
-	flag.StringVar(&c.AccessKey, "access_key", "", "the accessKey for ACM & KMS")
-	flag.StringVar(&c.SecretKey, "secret_key", "", "the secretKey for ACM & KMS")
-	flag.BoolVar(&c.OpenKMS, "open_kms", false, `it's to open KMS, default is false. https://help.aliyun.com/product/28933.html, to enable encrypt/decrypt, DataId should be start with "cipher-"`)
-	flag.StringVar(&c.CacheDir, "cache_dir", "", "the directory for persist nacos service info,default value is current path")
-	flag.StringVar(&c.Username, "username", "", "the username for nacos auth")
-	flag.StringVar(&c.Password, "password", "", "the password for nacos auth")
-	flag.StringVar(&c.LogDir, "log_dir", "", "the directory for log, default is current path")
-	flag.StringVar(&c.serverAddrs, "server_addrs", "", "the server address for nacos")
-	flag.StringVar(&c.group, "group", "develop", "the group for nacos")
+	fs.Uint64Var(&c.TimeoutMs, "timeout_ms", 10000, "timeout for requesting Nacos server, default value is")
+	fs.StringVar(&c.NamespaceId, "namespace_id", "", "the namespaceId of Nacos")
+	fs.StringVar(&c.Endpoint, "endpoint", "", "the endpoint for ACM. https://help.aliyun.com/document_detail/130146.html")
+	fs.StringVar(&c.RegionId, "region_id", "", "the regionId for ACM & KMS")
+	fs.StringVar(&c.AccessKey, "access_key", "", "the accessKey for ACM & KMS")
+	fs.StringVar(&c.SecretKey, "secret_key", "", "the secretKey for ACM & KMS")
+	fs.BoolVar(&c.OpenKMS, "open_kms", false, `it's to open KMS, default is false. https://help.aliyun.com/product/28933.html, to enable encrypt/decrypt, DataId should be start with "cipher-"`)
+	fs.StringVar(&c.CacheDir, "cache_dir", "", "the directory for persist nacos service info,default value is current path")
+	fs.StringVar(&c.Username, "username", "", "the username for nacos auth")
+	fs.StringVar(&c.Password, "password", "", "the password for nacos auth")
+	fs.StringVar(&c.LogDir, "log_dir", "", "the directory for log, default is current path")
+	fs.StringVar(&c.serverAddrs, "server_addrs", "", "the server address for nacos")
+	fs.StringVar(&c.group, "group", "develop", "the group for nacos")
 }
 
 func (c *ConfiguratorBootloader) ValidateFlags() error {
@@ -110,8 +110,7 @@ func (c *Configurator) init() error {
 }
 
 func (c *Configurator) WatchConfig(name string) component.Iterator[component.ConfigDecoder] {
-	watcher := newWatcher(context.Background(), name, c.group, c.client.CancelListenConfig)
-	return watcher
+	return newWatcher(c, name, c.group)
 }
 
 func (c *Configurator) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
@@ -141,23 +140,20 @@ func (c *yamlConfig) Decode(x any) error {
 	return yaml.Unmarshal([]byte(c.content), x)
 }
 
-type cancelListenConfigFunc func(params vo.ConfigParam) (err error)
-
 type Watcher struct {
 	*Configurator
-	dataID             string
-	group              string
-	contents           chan string
-	cancelListenConfig cancelListenConfigFunc
-	once               sync.Once
+	dataID   string
+	group    string
+	contents chan string
+	once     sync.Once
 }
 
-func newWatcher(ctx context.Context, dataID string, group string, cancelListenConfig cancelListenConfigFunc) *Watcher {
+func newWatcher(cfg *Configurator, dataID string, group string) *Watcher {
 	w := &Watcher{
-		dataID:             dataID,
-		group:              group,
-		cancelListenConfig: cancelListenConfig,
-		contents:           make(chan string, 100),
+		Configurator: cfg,
+		dataID:       dataID,
+		group:        group,
+		contents:     make(chan string, 100),
 	}
 	return w
 }
@@ -191,7 +187,7 @@ func (w *Watcher) Next(ctx context.Context) (component.ConfigDecoder, error) {
 }
 
 func (w *Watcher) Close() error {
-	err := w.cancelListenConfig(vo.ConfigParam{
+	err := w.client.CancelListenConfig(vo.ConfigParam{
 		DataId: w.dataID,
 		Group:  w.group,
 	})

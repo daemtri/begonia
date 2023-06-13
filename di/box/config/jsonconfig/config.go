@@ -50,7 +50,7 @@ func parseJSON(fs *flag.FlagSet, prefix string, result *gjson.Result) {
 func ParseJSON(fs *flag.FlagSet, json string) error {
 	result := gjson.Parse(json)
 	if !result.IsObject() {
-		return fmt.Errorf("参数解析失败")
+		return fmt.Errorf("参数解析失败: %s", json)
 	}
 	parseJSON(fs, "", &result)
 	return nil
@@ -90,7 +90,7 @@ func parseJSONToKeyValue(prefix string, result *gjson.Result) []box.ConfigItem {
 func ParseJSONToKeyValue(json string) ([]box.ConfigItem, error) {
 	result := gjson.Parse(json)
 	if !result.IsObject() {
-		return nil, fmt.Errorf("参数解析失败")
+		return nil, fmt.Errorf("参数解析失败,非对象: %s", json)
 	}
 
 	return parseJSONToKeyValue("", &result), nil

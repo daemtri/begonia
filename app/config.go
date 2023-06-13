@@ -28,6 +28,7 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 	if err != nil {
 		return fmt.Errorf("转化配置文件格式出错, name=%s, err=%w", name, err)
 	}
+	logger.Info("app config loaded", "name", name, "raw", cfg.Raw())
 	items, err := config.ParseJSONToKeyValue(string(jsonRawConfig))
 	if err != nil {
 		return fmt.Errorf("解析配置文件出错, name=%s, err=%w", name, err)
@@ -44,6 +45,7 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 				}
 				panic(err)
 			}
+			logger.Info("app config update", "name", name, "raw", cfg.Raw())
 			jsonRawConfig, err := yaml.YAMLToJSON(cfg.Raw())
 			if err != nil {
 				panic(err)
