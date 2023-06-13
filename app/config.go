@@ -28,7 +28,7 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 	if err != nil {
 		return fmt.Errorf("转化配置文件格式出错, name=%s, err=%w", name, err)
 	}
-	logger.Info("app config loaded", "name", name, "raw", cfg.Raw())
+	logger.Info("app config load", "name", name, "raw", cfg.Raw())
 	items, err := config.ParseJSONToKeyValue(string(jsonRawConfig))
 	if err != nil {
 		return fmt.Errorf("解析配置文件出错, name=%s, err=%w", name, err)
@@ -39,7 +39,7 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 		for {
 			cfg, err := iterator.Next(ctx)
 			if err != nil {
-				if errors.Is(err, context.DeadlineExceeded) {
+				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					logger.Info("module config watch timeout", "name", name)
 					return
 				}

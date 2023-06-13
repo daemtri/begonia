@@ -238,7 +238,7 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) 
 		for {
 			cfg, err := iterator.Next(ctx)
 			if err != nil {
-				if errors.Is(err, context.DeadlineExceeded) {
+				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					logger.Info("module config watch timeout", "name", mc.name)
 					return
 				}

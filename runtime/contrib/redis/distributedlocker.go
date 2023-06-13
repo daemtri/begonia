@@ -170,7 +170,7 @@ func (l *Locker) Lock() (context.Context, error) {
 		l.Logger.Warn("failed to acquire lock", "name", l.key, "error", err)
 		select {
 		case <-l.ctx.Done():
-			return nil, context.DeadlineExceeded
+			return nil, l.ctx.Err()
 		case <-time.After(100 * time.Millisecond):
 			continue
 		}

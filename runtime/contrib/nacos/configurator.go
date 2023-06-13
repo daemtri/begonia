@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
+	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
@@ -29,7 +30,6 @@ type ConfiguratorBootloader struct {
 	constant.ClientConfig
 	instance    Configurator
 	serverAddrs string
-	group       string
 }
 
 func (c *ConfiguratorBootloader) Destroy() error {
@@ -49,7 +49,6 @@ func (c *ConfiguratorBootloader) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.Password, "password", "", "the password for nacos auth")
 	fs.StringVar(&c.LogDir, "log_dir", "", "the directory for log, default is current path")
 	fs.StringVar(&c.serverAddrs, "server_addrs", "", "the server address for nacos")
-	fs.StringVar(&c.group, "group", "develop", "the group for nacos")
 }
 
 func (c *ConfiguratorBootloader) ValidateFlags() error {
@@ -81,7 +80,7 @@ func (c *ConfiguratorBootloader) Boot(logger *slog.Logger) error {
 		return err
 	}
 	c.instance.client = client
-	c.instance.group = c.group
+	c.instance.group = runtime.GetServiceAlias()
 	return c.instance.init()
 }
 
@@ -198,6 +197,6 @@ func (w *Watcher) Close() error {
 func (w *Watcher) Stop() {
 	err := w.Close()
 	if err != nil {
-		w.log.Warn("close watcher error", "error", err)
+		w.log.Warn("close watcher error", "error  ", err)
 	}
 }
