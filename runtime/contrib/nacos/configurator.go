@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
@@ -80,7 +79,6 @@ func (c *ConfiguratorBootloader) Boot(logger *slog.Logger) error {
 		return err
 	}
 	c.instance.client = client
-	c.instance.group = runtime.GetServiceAlias()
 	return c.instance.init()
 }
 
@@ -96,7 +94,6 @@ func (c *ConfiguratorBootloader) Instance() component.Configurator {
 type Configurator struct {
 	log    *slog.Logger
 	client config_client.IConfigClient
-	group  string
 }
 
 func (c *Configurator) close() error {
@@ -108,14 +105,24 @@ func (c *Configurator) init() error {
 	return nil
 }
 
+func parseNameAndGroup(name string) (string, string) {
+	parts := strings.SplitN(name, "/", 2)
+	if len(parts) == 1 {
+		return parts[0], "global"
+	}
+	return parts[1], parts[0]
+}
+
 func (c *Configurator) WatchConfig(name string) component.Iterator[component.ConfigDecoder] {
-	return newWatcher(c, name, c.group)
+	group, parsedName := parseNameAndGroup(name)
+	return newWatcher(c, parsedName, group)
 }
 
 func (c *Configurator) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
+	group, parsedName := parseNameAndGroup(name)
 	content, err := c.client.GetConfig(vo.ConfigParam{
-		DataId: name,
-		Group:  c.group,
+		DataId: parsedName,
+		Group:  group,
 	})
 	if err != nil {
 		return nil, err
