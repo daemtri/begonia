@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
@@ -29,6 +30,7 @@ var (
 	broadCastHost     string
 	enableSideCarMode bool
 	logger            = logx.GetLogger("app")
+	appConfigName     string
 )
 
 func Run(name string) {
@@ -36,6 +38,7 @@ func Run(name string) {
 
 	box.FlagSet().StringVar(&broadCastHost, "broadcast-host", broadCastHost, "默认广播地址")
 	box.FlagSet().BoolVar(&enableSideCarMode, "sidecar-enable", false, "开启sgr服务发现边车模式")
+	box.FlagSet().StringVar(&appConfigName, "app-config", fmt.Sprintf("app_%s", runtime.GetServiceAlias()), "app配置文件路径")
 
 	// 注册基础功能
 	box.Provide[*grpcx.ClientBuilder](grpcx.NewClientBuilder, box.WithFlags("grpc-client"))

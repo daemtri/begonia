@@ -41,7 +41,7 @@ func initGlobal(ctx context.Context) error {
 
 type moduleOption struct {
 	Dependecies []string `flag:"dependecies" usage:"依赖"`
-	ConfigName  string   `flag:"config" usage:"配置名,默认为module_{module_name}.yaml"`
+	ConfigName  string   `flag:"config" usage:"配置名,默认为module_{module_name}"`
 }
 
 type moduleRuntime struct {
@@ -53,6 +53,9 @@ type moduleRuntime struct {
 
 func (mr *moduleRuntime) init() error {
 	depency.SetModuleConfig(mr.moduleName, mr.opts.Dependecies)
+	if mr.opts.ConfigName == "" {
+		mr.opts.ConfigName = "module_" + mr.moduleName
+	}
 	return nil
 }
 
@@ -263,7 +266,7 @@ func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
 	mr := objectContainerFromCtx(ctx)
 	return mr.config.MustGetOrInit(func() any {
 		mc := &moduleConfig[T]{
-			name: fmt.Sprintf("module_%s", mr.moduleName),
+			name: mr.opts.ConfigName,
 			init: helper.ZeroWithKind[T],
 		}
 		mc.preload(ctx)
