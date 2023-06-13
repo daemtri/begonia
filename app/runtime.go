@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -25,14 +26,14 @@ import (
 var (
 	servicesConns     helper.OnceMap[string, grpc.ClientConnInterface]
 	grpcClientBuilder *grpcx.ClientBuilder
-	configWatcher     component.Configuration
+	configWatcher     component.Configurator
 	distrubutedLocker component.DistrubutedLocker
 	resourcesManager  *resources.Manager
 )
 
 func initGlobal(ctx context.Context) error {
 	grpcClientBuilder = box.Invoke[*grpcx.ClientBuilder](ctx)
-	configWatcher = box.Invoke[component.Configuration](ctx)
+	configWatcher = box.Invoke[component.Configurator](ctx)
 	resourcesManager = box.Invoke[*resources.Manager](ctx)
 	distrubutedLocker = box.Invoke[component.DistrubutedLocker](ctx)
 	return nil
@@ -232,29 +233,26 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) 
 		panic(fmt.Errorf("set config error: %w", err))
 	}
 	logger.Info("module config watch start", "name", mc.name)
-	ch, err := configWatcher.WatchConfig(ctx, mc.name)
-	if err != nil {
-		panic(fmt.Errorf("watch config error: %w", err))
-	}
+	iterator := configWatcher.WatchConfig(mc.name)
 	go func() {
 		for {
-			select {
-			case cfg, ok := <-ch:
-				if !ok {
-					logger.Info("module config watch done", "name", mc.name)
+			cfg, err := iterator.Next(ctx)
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					logger.Info("module config watch timeout", "name", mc.name)
 					return
 				}
-				if err := mc.parserConfig(cfg); err != nil {
-					logger.Error("module config watch parse error", "name", mc.name, "error", err)
-				}
-				if err := setter(mc.Instance()); err != nil {
-					logger.Error("module config watch setter error", "name", mc.name, "error", err)
-					// TODO: terminate app
-				} else {
-					logger.Info("module config watch setter success", "name", mc.name)
-				}
-			case <-ctx.Done():
-				logger.Info("module config watch done", "name", mc.name)
+				logger.Error("module config watch error", "name", mc.name, "error", err)
+				return
+			}
+			if err := mc.parserConfig(cfg); err != nil {
+				logger.Error("module config watch parse error", "name", mc.name, "error", err)
+			}
+			if err := setter(mc.Instance()); err != nil {
+				logger.Error("module config watch setter error", "name", mc.name, "error", err)
+				// TODO: terminate app
+			} else {
+				logger.Info("module config watch setter success", "name", mc.name)
 			}
 		}
 	}()

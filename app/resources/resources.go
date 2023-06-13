@@ -63,7 +63,7 @@ func (r *Config) GetKafkaConfig(name string) *KafkaConfig {
 }
 
 type Manager struct {
-	configor component.Configuration
+	configor component.Configurator
 	config   *Config
 
 	dbClients    helper.OnceMap[string, *sql.DB]
@@ -71,7 +71,7 @@ type Manager struct {
 	kafkaClients helper.OnceMap[string, *kafka.Conn]
 }
 
-func NewManager(ctx context.Context, configor component.Configuration) (*Manager, error) {
+func NewManager(ctx context.Context, configor component.Configurator) (*Manager, error) {
 	m := &Manager{configor: configor}
 	return m, m.init(ctx)
 }

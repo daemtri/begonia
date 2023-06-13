@@ -47,7 +47,7 @@ func Run(name string) {
 	}, box.WithFlags("trace"))
 
 	// 注册runtime
-	box.Provide[component.Configuration](&runtime.Builder[component.Configuration]{Name: files.Name}, box.WithFlags("config"))
+	box.Provide[component.Configurator](&runtime.Builder[component.Configurator]{Name: files.Name}, box.WithFlags("config"))
 	box.Provide[component.Discovery](&runtime.Builder[component.Discovery]{Name: files.Name}, box.WithFlags("discovery"))
 	box.Provide[component.Concurrency](&runtime.Builder[component.DistrubutedLocker]{Name: redis.Name}, box.WithFlags("lock"))
 

@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
@@ -12,11 +13,11 @@ import (
 )
 
 type runtimeConfigLoader struct {
-	driver component.Configuration
+	driver component.Configurator
 }
 
 func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.ConfigItem)) error {
-	c.driver = box.Invoke[component.Configuration](ctx)
+	c.driver = box.Invoke[component.Configurator](ctx)
 
 	name := fmt.Sprintf("app_%s", runtime.GetServiceAlias())
 	cfg, err := c.driver.ReadConfig(ctx, name)
@@ -33,11 +34,16 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 	}
 	setter(items)
 	go func() {
-		ch, err := c.driver.WatchConfig(ctx, name)
-		if err != nil {
-			panic(err)
-		}
-		for cfg := range ch {
+		iterator := c.driver.WatchConfig(name)
+		for {
+			cfg, err := iterator.Next(ctx)
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) {
+					logger.Info("module config watch timeout", "name", name)
+					return
+				}
+				panic(err)
+			}
 			jsonRawConfig, err := yaml.YAMLToJSON(cfg.Raw())
 			if err != nil {
 				panic(err)

@@ -1,6 +1,7 @@
 package component
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"reflect"
@@ -86,4 +87,9 @@ func (c *container) load(typ reflect.Type, name string) (any, error) {
 	}
 
 	return v, nil
+}
+
+type Iterator[T any] interface {
+	Stop()
+	Next(ctx context.Context) (T, error)
 }
