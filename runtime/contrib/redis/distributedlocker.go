@@ -79,15 +79,50 @@ type DistrubutedLocker struct {
 }
 
 func (dl *DistrubutedLocker) GetLock(ctx context.Context, name string) component.Locker {
-	return NewLocker(dl, ctx, name)
+	value := ctx.Value(lockerContextKey)
+	if value != nil {
+		lockMap, ok := value.(mapset.Set[string])
+		if !ok {
+			panic(errors.New("invalid locker context"))
+		}
+		if lockMap.Contains(name) {
+			return fakeLocker{ctx: ctx}
+		}
+		lockMap.Add(name)
+		return NewLocker(dl, ctx, name)
+	}
+	ctx2 := context.WithValue(ctx, lockerContextKey, mapset.NewSet(name))
+	return NewLocker(dl, ctx2, name)
+}
+
+type fakeLocker struct {
+	ctx context.Context
+}
+
+func (f fakeLocker) Lock() (context.Context, error) {
+	return f.ctx, nil
+}
+
+func (f fakeLocker) TryLock() (context.Context, error) {
+	return f.ctx, nil
+}
+
+func (f fakeLocker) Unlock() {}
+
+func (f fakeLocker) Do(fn func(ctx context.Context) error) error {
+	return fn(f.ctx)
+}
+
+func (f fakeLocker) TryDo(fn func(ctx context.Context) error) error {
+	return fn(f.ctx)
 }
 
 type Locker struct {
 	*DistrubutedLocker
-	ctx                context.Context
-	key                string
-	lockMap            mapset.Set[string]
-	ticker             time.Ticker
+	ctx context.Context
+	key string
+
+	ticker             *time.Ticker
 	closeToStopRenewal chan struct{}
 }
 
@@ -96,31 +131,14 @@ func NewLocker(dl *DistrubutedLocker, ctx context.Context, name string) *Locker 
 		DistrubutedLocker: dl,
 		ctx:               ctx,
 		key:               fmt.Sprintf("app:lock:%s", name),
-		ticker:            *time.NewTicker(dl.Renewal),
 	}
 }
 
 var lockerContextKey = &struct{ name string }{name: "redis-locker"}
 
-func (l *Locker) tryLockFromContext() bool {
-	value := l.ctx.Value(lockerContextKey)
-	if value == nil {
-		l.lockMap = mapset.NewSet(l.key)
-		return false
-	}
-	lockMap, ok := value.(mapset.Set[string])
-	if !ok {
-		panic(errors.New("invalid locker context"))
-	}
-	if !lockMap.Contains(l.key) {
-		lockMap.Add(l.key)
-		return false
-	}
-	return true
-}
-
 func (l *Locker) renewal() context.Context {
 	l.closeToStopRenewal = make(chan struct{})
+	l.ticker = time.NewTicker(l.Renewal)
 	go func() {
 		defer l.ticker.Stop()
 		for {
@@ -135,16 +153,10 @@ func (l *Locker) renewal() context.Context {
 			}
 		}
 	}()
-	if l.lockMap == nil {
-		return l.ctx
-	}
-	return context.WithValue(l.ctx, lockerContextKey, l.lockMap)
+	return l.ctx
 }
 
 func (l *Locker) Lock() (context.Context, error) {
-	if l.tryLockFromContext() {
-		return l.ctx, nil
-	}
 	for {
 		ok, err := l.Client.SetNX(
 			l.ctx,
@@ -168,9 +180,6 @@ func (l *Locker) Lock() (context.Context, error) {
 }
 
 func (l *Locker) TryLock() (context.Context, error) {
-	if l.tryLockFromContext() {
-		return l.ctx, nil
-	}
 	ok, err := l.Client.SetNX(
 		l.ctx,
 		l.key,
@@ -187,15 +196,12 @@ func (l *Locker) TryLock() (context.Context, error) {
 }
 
 func (l *Locker) Unlock() {
-	if l.closeToStopRenewal == nil {
-		return
-	}
 	close(l.closeToStopRenewal)
 	_, err := l.Client.CmpDel(l.ctx, l.key, l.LockValue)
 	if err != nil {
 		l.Logger.Error("failed to release lock", "error", err, "name", l.key)
 	}
-	l.lockMap.Remove(l.key)
+	l.ctx.Value(lockerContextKey).(mapset.Set[string]).Remove(l.key)
 }
 
 func (l *Locker) Do(fn func(ctx context.Context) error) error {

@@ -40,7 +40,7 @@ func (it *Integrator) integrate(mr *moduleRuntime) {
 	currentModule = mr
 	it.Http.With(func(h http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			r2 := r.WithContext(withModuleRuntime(r.Context(), currentModule))
+			r2 := r.WithContext(withObjectContainer(r.Context(), currentModule))
 			h.ServeHTTP(w, r2)
 		})
 	}).Route("/"+mr.moduleName, func(r chi.Router) {
@@ -81,7 +81,7 @@ func newGrpcServiceRegistrarImpl(
 func (gr *grpcServiceRegistrarImpl) RegisterService(desc *grpc.ServiceDesc, impl any) {
 	mr := currentModule
 	gr.ci.Bind(desc.ServiceName, func(ctx context.Context) context.Context {
-		return withModuleRuntime(ctx, mr)
+		return withObjectContainer(ctx, mr)
 	})
 	gr.service.RegisterService(desc, impl)
 }
@@ -98,7 +98,7 @@ func Route[K ~int32, T proto.Message](msgID K, handleFunc func(ctx context.Conte
 					return status.Error(codes.InvalidArgument, fmt.Sprintf("message id %d does not match the message type, error %s", msgID, err))
 				}
 			}
-			return handleFunc(withModuleRuntime(ctx, mr), v.(T))
+			return handleFunc(withObjectContainer(ctx, mr), v.(T))
 		},
 	}
 }

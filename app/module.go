@@ -29,7 +29,7 @@ func initModules() func(ctx context.Context) error {
 		modules := box.Invoke[[]*moduleRuntime](ctx)
 		for i := range modules {
 			mr := modules[i]
-			if err := mr.module.Init(withModuleRuntime(ctx, mr)); err != nil {
+			if err := mr.module.Init(withObjectContainer(ctx, mr)); err != nil {
 				return err
 			}
 			globalIntegrator.integrate(mr)
@@ -40,7 +40,7 @@ func initModules() func(ctx context.Context) error {
 			defer cancel()
 			for i := range modules {
 				mr := modules[i]
-				modules[i].module.Destroy(withModuleRuntime(wCtx, mr))
+				modules[i].module.Destroy(withObjectContainer(wCtx, mr))
 			}
 		}()
 		return nil

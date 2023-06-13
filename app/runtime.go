@@ -22,11 +22,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-type contextKey struct{ name string }
-
 var (
-	moduleRuntimeCtxKey = &contextKey{name: "module_runtime"}
-
 	servicesConns     helper.OnceMap[string, grpc.ClientConnInterface]
 	grpcClientBuilder *grpcx.ClientBuilder
 	configWatcher     component.Configuration
@@ -59,18 +55,6 @@ func (mr *moduleRuntime) init() error {
 	return nil
 }
 
-func withModuleRuntime(ctx context.Context, mr *moduleRuntime) context.Context {
-	return context.WithValue(ctx, moduleRuntimeCtxKey, mr)
-}
-
-func moduleRuntimeFromCtx(ctx context.Context) *moduleRuntime {
-	v := ctx.Value(moduleRuntimeCtxKey)
-	if v == nil {
-		panic("no module runtime in context")
-	}
-	return v.(*moduleRuntime)
-}
-
 func newModuleRuntime(name string, module Module) func(opts *moduleOption) (*moduleRuntime, error) {
 	return func(opts *moduleOption) (*moduleRuntime, error) {
 		mr := &moduleRuntime{
@@ -84,21 +68,19 @@ func newModuleRuntime(name string, module Module) func(opts *moduleOption) (*mod
 
 // GetModuleName 获取当前Module的名称
 func GetModuleName(ctx context.Context) string {
-	mr := moduleRuntimeFromCtx(ctx)
+	mr := objectContainerFromCtx(ctx)
 	return mr.moduleName
 }
 
 // GetLogger 获取日志
 func GetLogger(ctx context.Context) *logx.Logger {
-	mr := moduleRuntimeFromCtx(ctx)
+	mr := objectContainerFromCtx(ctx)
 	return logx.GetLogger("module:" + mr.moduleName)
 }
 
 // GetLocker 获取分布式锁
-// 在同一个ctx上获取同一个key的锁，会导致死锁
-// 使用 locker.Lock() 或者 locker.TryLocker()返回的ctx获取锁，可以实现可重入锁的功能
+// 在同一个ctx上获取同一个key的锁，会直接返回同一个锁对象
 func GetLocker(ctx context.Context, key string) component.Locker {
-	// mr := moduleRuntimeFromCtx(ctx)
 	return distrubutedLocker.GetLock(ctx, key)
 }
 
@@ -280,7 +262,7 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) 
 
 // GetConfig 获取配置
 func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
-	mr := moduleRuntimeFromCtx(ctx)
+	mr := objectContainerFromCtx(ctx)
 	return mr.config.MustGetOrInit(func() any {
 		mc := &moduleConfig[T]{
 			name: fmt.Sprintf("module_%s", mr.moduleName),
