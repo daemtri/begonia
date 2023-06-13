@@ -18,6 +18,7 @@ import (
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/files"
 	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/k8s"
+	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/nacos"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/redis"
 	_ "git.bianfeng.com/stars/wegame/wan/wanx/runtime/contrib/servicemesh"
 	"github.com/go-chi/chi/v5"
@@ -49,7 +50,7 @@ func Run(name string) {
 	// 注册runtime
 	box.Provide[component.Configurator](&runtime.Builder[component.Configurator]{Name: files.Name}, box.WithFlags("config"))
 	box.Provide[component.Discovery](&runtime.Builder[component.Discovery]{Name: files.Name}, box.WithFlags("discovery"))
-	box.Provide[component.Concurrency](&runtime.Builder[component.DistrubutedLocker]{Name: redis.Name}, box.WithFlags("lock"))
+	box.Provide[component.DistrubutedLocker](&runtime.Builder[component.DistrubutedLocker]{Name: redis.Name}, box.WithFlags("lock"))
 
 	// 注册bootstrap
 	box.Provide[*bootstrap.RouteRegistrar](bootstrap.NewRouteRegistrar)
