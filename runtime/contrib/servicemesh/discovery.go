@@ -109,9 +109,9 @@ func (r *Registry) Register(ctx context.Context, service component.ServiceEntry)
 }
 
 func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.ServiceEntry, err error) {
-	st := ParseServiceTypeFromServiceName(name)
+	st := runtime.ParseServiceType(name)
 	switch st {
-	case ServiceTypeCluster:
+	case runtime.ServiceTypeCluster:
 		ret := r.redisClient.Get(ctx, registerKey(name, id))
 		if ret.Err() != nil {
 			return nil, ret.Err()
@@ -122,7 +122,7 @@ func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.S
 			return nil, err
 		}
 		return &se, nil
-	case ServiceTypeService:
+	case runtime.ServiceTypeService:
 		return &component.ServiceEntry{
 			ID:   id,
 			Name: name,
@@ -136,9 +136,9 @@ func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.S
 }
 
 func (r *Registry) Browse(ctx context.Context, name string) (*component.Service, error) {
-	st := ParseServiceTypeFromServiceName(name)
+	st := runtime.ParseServiceType(name)
 	switch st {
-	case ServiceTypeCluster:
+	case runtime.ServiceTypeCluster:
 		ret := r.redisClient.Keys(ctx, registerKey(name, "*"))
 		if ret.Err() != nil {
 			return nil, ret.Err()
@@ -162,24 +162,25 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 			}
 		}
 		return s, nil
-	}
-	return &component.Service{
-		Entries: []component.ServiceEntry{
-			{
-				ID:   "unknown",
-				Name: name,
-				Endpoints: []string{
-					fmt.Sprintf("grpc://%s:80", name),
+	default:
+		return &component.Service{
+			Entries: []component.ServiceEntry{
+				{
+					ID:   "unknown",
+					Name: name,
+					Endpoints: []string{
+						fmt.Sprintf("grpc://%s:80", name),
+					},
 				},
 			},
-		},
-		Configs: []component.ConfigItem{
-			{
-				Key:   "LoadBalancingConfig",
-				Value: "round_robin",
+			Configs: []component.ConfigItem{
+				{
+					Key:   "LoadBalancingConfig",
+					Value: "pick_first",
+				},
 			},
-		},
-	}, nil
+		}, nil
+	}
 }
 
 func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
