@@ -76,7 +76,7 @@ func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.S
 }
 
 func parserService(dec component.ConfigDecoder, name string) (*component.Service, error) {
-	cfgs := []component.ServiceEntry{}
+	var cfgs []component.ServiceEntry
 	if err := dec.Decode(&cfgs); err != nil {
 		return nil, err
 	}
