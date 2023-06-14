@@ -113,9 +113,9 @@ func parseNameAndGroup(name string) (string, string) {
 	return parts[1], parts[0]
 }
 
-func (c *Configurator) WatchConfig(name string) component.Iterator[component.ConfigDecoder] {
+func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Iterator[component.ConfigDecoder] {
 	group, parsedName := parseNameAndGroup(name)
-	return newWatcher(c, parsedName, group)
+	return newWatcher(c, parsedName, group, ctx)
 }
 
 func (c *Configurator) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
@@ -152,19 +152,21 @@ type Watcher struct {
 	group    string
 	contents chan string
 	once     sync.Once
+	ctx      context.Context
 }
 
-func newWatcher(cfg *Configurator, dataID string, group string) *Watcher {
+func newWatcher(cfg *Configurator, dataID string, group string, ctx context.Context) *Watcher {
 	w := &Watcher{
 		Configurator: cfg,
 		dataID:       dataID,
 		group:        group,
 		contents:     make(chan string, 100),
+		ctx:          ctx,
 	}
 	return w
 }
 
-func (w *Watcher) Next(ctx context.Context) (component.ConfigDecoder, error) {
+func (w *Watcher) Next() (component.ConfigDecoder, error) {
 	var err error
 	w.once.Do(func() {
 		err = w.client.ListenConfig(vo.ConfigParam{
@@ -182,8 +184,8 @@ func (w *Watcher) Next(ctx context.Context) (component.ConfigDecoder, error) {
 		return nil, err
 	}
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-w.ctx.Done():
+		return nil, w.ctx.Err()
 	case content, ok := <-w.contents:
 		if !ok {
 			return nil, io.ErrUnexpectedEOF

@@ -33,9 +33,9 @@ func (c *runtimeConfigLoader) Load(ctx context.Context, setter func([]box.Config
 	}
 	setter(items)
 	go func() {
-		iterator := c.driver.WatchConfig(appConfigName)
+		iterator := c.driver.WatchConfig(ctx, appConfigName)
 		for {
-			cfg, err := iterator.Next(ctx)
+			cfg, err := iterator.Next()
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					logger.Info("module config watch timeout", "name", appConfigName)

@@ -236,10 +236,10 @@ func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) 
 		panic(fmt.Errorf("set config error: %w", err))
 	}
 	logger.Info("module config watch start", "name", mc.name)
-	iterator := configWatcher.WatchConfig(mc.name)
+	iterator := configWatcher.WatchConfig(ctx, mc.name)
 	go func() {
 		for {
-			cfg, err := iterator.Next(ctx)
+			cfg, err := iterator.Next()
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
 					logger.Info("module config watch timeout", "name", mc.name)

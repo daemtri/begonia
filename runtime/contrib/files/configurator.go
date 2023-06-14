@@ -111,9 +111,9 @@ func (c *Configurator) init() error {
 	return nil
 }
 
-func (c *Configurator) WatchConfig(name string) component.Iterator[component.ConfigDecoder] {
+func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Iterator[component.ConfigDecoder] {
 	cfgFile := filepath.Join(c.configDir, name+".yaml")
-	return &configfileIterator{Configurator: c, cfgFile: cfgFile}
+	return &configfileIterator{Configurator: c, cfgFile: cfgFile, ctx: ctx}
 }
 
 func (c *Configurator) ReadConfig(ctx context.Context, name string) (component.ConfigDecoder, error) {
@@ -127,9 +127,10 @@ type configfileIterator struct {
 	once    sync.Once
 	updates <-chan fsnotify.Event
 	cancel  func()
+	ctx     context.Context
 }
 
-func (c *configfileIterator) Next(ctx context.Context) (rtn component.ConfigDecoder, err error) {
+func (c *configfileIterator) Next() (rtn component.ConfigDecoder, err error) {
 	c.once.Do(func() {
 		rtn, err = readFile(c.cfgFile)
 		c.log.Info("添加监听配置文件", "file", c.cfgFile, "path", c.configDir)
@@ -142,8 +143,8 @@ func (c *configfileIterator) Next(ctx context.Context) (rtn component.ConfigDeco
 		return
 	}
 	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	case <-c.ctx.Done():
+		return nil, c.ctx.Err()
 	case event, ok := <-c.updates:
 		if !ok {
 			return nil, io.ErrUnexpectedEOF
