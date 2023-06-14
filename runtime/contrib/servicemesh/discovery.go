@@ -154,6 +154,12 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 				return nil, err
 			}
 			s.Entries = append(s.Entries, se)
+			s.Configs = []component.ConfigItem{
+				{
+					Key:   "LoadBalancingConfig",
+					Value: "specify",
+				},
+			}
 		}
 		return s, nil
 	}
