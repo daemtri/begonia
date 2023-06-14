@@ -70,16 +70,21 @@ func (da *DiscoveryAgent) startWatch(name string) (*component.Service, error) {
 	if ok {
 		return ses2, nil
 	}
-	ch := make(chan *component.Service, 1)
-	if err := da.Discovery.Watch(context.TODO(), name, ch); err != nil {
+	iter := da.Discovery.Watch(context.TODO(), name)
+	ses1, err := iter.Next()
+	if err != nil {
 		return nil, fmt.Errorf("discovery watch  error %s", err)
 	}
 	sender := da.queue.Topic(name)
-	ses1 := <-ch
 	da.cache.Store(name, ses1)
 	logger.Debug("DiscoveryAgent service found", "name", name, "entries", ses1)
 	go func() {
-		for ses := range ch {
+		for {
+			ses, err := iter.Next()
+			if err != nil {
+				logger.Warn("DiscoveryAgent service next error", "name", name, "error", err)
+				continue
+			}
 			da.cache.Store(name, ses)
 			sender <- ses
 			logger.Debug("DiscoveryAgent service changed", "name", name, "entries", ses)

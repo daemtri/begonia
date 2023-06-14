@@ -2,6 +2,7 @@ package grpcresolver
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -62,19 +63,17 @@ func (sr *sgrResolver) Init() error {
 	}
 
 	sr.ctx, sr.ctxCancel = context.WithCancel(context.Background())
-	discoverCh := make(chan *component.Service, 1)
-	if err := sr.discovery.Watch(sr.ctx, sr.target.serviceName, discoverCh); err != nil {
+	iter := sr.discovery.Watch(sr.ctx, sr.target.serviceName)
+	service, err := iter.Next()
+	if err != nil {
 		return err
 	}
-
-	// 首次更新
-	service := <-discoverCh
 	// TODO: 增加超时机制
 	sr.currentServiceEntries = service.Entries
 	sr.currentServiceConfig = parseServiceConfig(service.Configs)
 	sr.updateClientConnState()
 
-	go sr.watch(discoverCh)
+	go sr.watch(iter)
 	logger.Info("Sgr GRPC resolver 初始化成功", "schema", sr.schema)
 	return nil
 }
@@ -129,9 +128,24 @@ func (sr *sgrResolver) updateClientConnState() {
 	}
 }
 
-func (sr *sgrResolver) watch(ch <-chan *component.Service) {
+func (sr *sgrResolver) watch(iter component.Iterator[*component.Service]) {
 	emptyTimer := time.NewTimer(DefaultUpdateEmptyConnStateDelay)
 	emptyTimer.Stop()
+	ch := make(chan *component.Service, 1)
+	go func() {
+		for {
+			service, err := iter.Next()
+			if err != nil {
+				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
+					close(ch)
+					return
+				}
+				logger.Warning("服务发现迭代出错", "err", err)
+				return
+			}
+			ch <- service
+		}
+	}()
 	for {
 		select {
 		case service, ok := <-ch:

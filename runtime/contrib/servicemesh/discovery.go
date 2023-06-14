@@ -62,7 +62,7 @@ func (r *Registry) Register(ctx context.Context, service component.ServiceEntry)
 	return nil
 }
 
-func (r *Registry) Lookup(ctx context.Context, id, name string) (se *component.ServiceEntry, err error) {
+func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.ServiceEntry, err error) {
 	return &component.ServiceEntry{
 		ID:   id,
 		Name: name,
@@ -92,9 +92,9 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	}, nil
 }
 
-func (r *Registry) Watch(ctx context.Context, name string, ch chan<- *component.Service) error {
+func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
+	ci := component.NewChanIterator[*component.Service](ctx)
 	s, _ := r.Browse(ctx, name)
-	ch <- s
-	<-ctx.Done()
-	return nil
+	ci.Send(s, nil)
+	return ci
 }

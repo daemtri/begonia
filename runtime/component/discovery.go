@@ -24,13 +24,8 @@ type Discovery interface {
 	Lookup(ctx context.Context, name, id string) (*ServiceEntry, error)
 	// Browse 查询指定name的所有ServiceEntry
 	Browse(ctx context.Context, name string) (*Service, error)
-	// Watch 监听服务变化，当ctx.Cancel时，将关闭channel
-	// chan 应被实现为无缓冲的通道
-	// chan推送消息的规则
-	//     1. 首次订阅，且服务列表非空，立即推送服务信息
-	//     2. 当服务列表发生变动时,推送该服务当前最新的的全部ServiceEntry
-	// 注意：chan任何时候都应该发送的是指定name的服务的此刻的完整的实例列表
-	Watch(ctx context.Context, name string, ch chan<- *Service) error
+	// Watch 监听服务变化
+	Watch(ctx context.Context, name string) Iterator[*Service]
 }
 
 // ServiceEntry 表示一个APP(Service)在服务发现系统中的一个实例(节点)

@@ -86,7 +86,7 @@ func (r *Registry) Register(ctx context.Context, service component.ServiceEntry)
 	return nil
 }
 
-func (r *Registry) Lookup(ctx context.Context, id, name string) (se *component.ServiceEntry, err error) {
+func (r *Registry) Lookup(ctx context.Context, name, id string) (se *component.ServiceEntry, err error) {
 	s, err := r.Browse(ctx, name)
 	if err != nil {
 		return nil, err
@@ -137,19 +137,24 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	return s, nil
 }
 
-func (r *Registry) Watch(ctx context.Context, name string, ch chan<- *component.Service) error {
+func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
 	w, err := r.clientset.CoreV1().Endpoints(r.namespace).Watch(ctx, metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", name),
 	})
-	if err != nil {
-		return err
-	}
 	resultChan := w.ResultChan()
-	for {
+	return component.IteratorFunc[*component.Service](func(stop bool) (*component.Service, error) {
+		if stop {
+			w.Stop()
+			return nil, nil
+		}
+		if err != nil {
+			defer func() { err = nil }()
+			return nil, err
+		}
 		select {
 		case <-ctx.Done():
 			w.Stop()
-			return nil
+			return nil, ctx.Err()
 		case event := <-resultChan:
 			switch event.Type {
 			case watch.Added, watch.Modified:
@@ -159,5 +164,6 @@ func (r *Registry) Watch(ctx context.Context, name string, ch chan<- *component.
 				fmt.Println("delete", event.Object)
 			}
 		}
-	}
+		return nil, nil
+	})
 }

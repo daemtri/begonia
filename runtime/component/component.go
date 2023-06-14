@@ -1,6 +1,7 @@
 package component
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"reflect"
@@ -91,4 +92,54 @@ func (c *container) load(typ reflect.Type, name string) (any, error) {
 type Iterator[T any] interface {
 	Stop()
 	Next() (T, error)
+}
+
+type ChanIterator[T any] struct {
+	ctx     context.Context
+	ch      chan T
+	errChan chan error
+}
+
+func NewChanIterator[T any](ctx context.Context) *ChanIterator[T] {
+	return &ChanIterator[T]{
+		ctx:     ctx,
+		ch:      make(chan T, 1),
+		errChan: make(chan error),
+	}
+}
+
+func (ci *ChanIterator[T]) Send(x T, e error) {
+	if e != nil {
+		ci.errChan <- e
+	} else {
+		ci.ch <- x
+	}
+}
+
+func (ci *ChanIterator[T]) Next() (t T, e error) {
+	select {
+	case <-ci.ctx.Done():
+		e = ci.ctx.Err()
+		return
+	case err := <-ci.errChan:
+		e = err
+		return
+	case v := <-ci.ch:
+		return v, nil
+	}
+}
+
+func (ci *ChanIterator[T]) Stop() {
+	close(ci.ch)
+	close(ci.errChan)
+}
+
+type IteratorFunc[T any] func(stop bool) (T, error)
+
+func (it IteratorFunc[T]) Stop() {
+	_, _ = it(true)
+}
+
+func (it IteratorFunc[T]) Next() (T, error) {
+	return it(false)
 }
