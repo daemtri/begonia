@@ -112,6 +112,42 @@ func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	})
 }
 
+type cluserConnProxy struct {
+	id   string
+	conn grpc.ClientConnInterface
+}
+
+func newClusterConnProxy(id string, conn grpc.ClientConnInterface) grpc.ClientConnInterface {
+	return &cluserConnProxy{
+		id:   id,
+		conn: conn,
+	}
+}
+
+func (ccp *cluserConnProxy) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
+	ctx2 := metadata.AppendToOutgoingContext(ctx, "service-id", ccp.id)
+	return ccp.conn.Invoke(ctx2, method, args, reply, opts...)
+}
+
+func (ccp *cluserConnProxy) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
+	ctx2 := metadata.AppendToOutgoingContext(ctx, "service-id", ccp.id)
+	return ccp.conn.NewStream(ctx2, desc, method, opts...)
+}
+
+func GetClusterConn(ctx context.Context, name string, id string) grpc.ClientConnInterface {
+	if !depency.Allow(GetModuleName(ctx), "app", name) {
+		panic(fmt.Errorf("module %s not allow to call app %s", GetModuleName(ctx), name))
+	}
+	conn := servicesConns.MustGetOrInit(name, func() grpc.ClientConnInterface {
+		conn, err := grpcClientBuilder.NewGrpcClientConn(name, "grpc://", id)
+		if err != nil {
+			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
+		}
+		return conn
+	})
+	return newClusterConnProxy(id, conn)
+}
+
 type userInfo struct {
 	md metadata.MD
 }
