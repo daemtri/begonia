@@ -12,6 +12,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
+	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap/client"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
 	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
@@ -108,30 +109,8 @@ func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 		if err != nil {
 			panic(fmt.Errorf("new grpc client error: name=%s,error=%s", name, err))
 		}
-		return conn
+		return client.WrapServiceGrpcClientConn(conn)
 	})
-}
-
-type cluserConnProxy struct {
-	id   string
-	conn grpc.ClientConnInterface
-}
-
-func newClusterConnProxy(id string, conn grpc.ClientConnInterface) grpc.ClientConnInterface {
-	return &cluserConnProxy{
-		id:   id,
-		conn: conn,
-	}
-}
-
-func (ccp *cluserConnProxy) Invoke(ctx context.Context, method string, args interface{}, reply interface{}, opts ...grpc.CallOption) error {
-	ctx2 := metadata.AppendToOutgoingContext(ctx, "service-id", ccp.id)
-	return ccp.conn.Invoke(ctx2, method, args, reply, opts...)
-}
-
-func (ccp *cluserConnProxy) NewStream(ctx context.Context, desc *grpc.StreamDesc, method string, opts ...grpc.CallOption) (grpc.ClientStream, error) {
-	ctx2 := metadata.AppendToOutgoingContext(ctx, "service-id", ccp.id)
-	return ccp.conn.NewStream(ctx2, desc, method, opts...)
 }
 
 func GetClusterConn(ctx context.Context, name string, id string) grpc.ClientConnInterface {
@@ -145,7 +124,7 @@ func GetClusterConn(ctx context.Context, name string, id string) grpc.ClientConn
 		}
 		return conn
 	})
-	return newClusterConnProxy(id, conn)
+	return client.WrapClusterGrpcClientConn(conn, id)
 }
 
 type userInfo struct {
