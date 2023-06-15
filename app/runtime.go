@@ -3,13 +3,11 @@ package app
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"reflect"
-	"strconv"
-	"sync/atomic"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/config"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/header"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap/client"
@@ -21,7 +19,6 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 var (
@@ -127,45 +124,9 @@ func GetClusterConn(ctx context.Context, name string, id string) grpc.ClientConn
 	return client.WrapClusterGrpcClientConn(conn, id)
 }
 
-type userInfo struct {
-	md metadata.MD
-}
-
-func (u *userInfo) get(key string) string {
-	ret := u.md.Get("tenant_id")
-	if len(ret) == 0 {
-		panic(fmt.Errorf("no %s in metadata", key))
-	}
-	return ret[0]
-}
-
-func (u *userInfo) GetTenantID() uint32 {
-	return uint32(helper.Must(strconv.Atoi(u.get("tenant_id"))))
-}
-
-func (u *userInfo) GetUserID() uint32 {
-	return uint32(helper.Must(strconv.Atoi(u.get("user_id"))))
-}
-
-func (u *userInfo) GetGameID() uint32 {
-	return uint32(helper.Must(strconv.Atoi(u.get("game_id"))))
-}
-
-func (u *userInfo) GetSource() string {
-	return u.get("source")
-}
-
-func (u *userInfo) GetVersion() uint32 {
-	return uint32(helper.Must(strconv.Atoi(u.get("version"))))
-}
-
 // GetUserInfo 获取用户信息
 func GetUserInfo(ctx context.Context) contract.UserInfoInterface {
-	md, exists := metadata.FromIncomingContext(ctx)
-	if !exists {
-		panic(fmt.Errorf("no metadata in context"))
-	}
-	return &userInfo{md: md}
+	return header.GetUserInfoFromIncomingCtx(ctx)
 }
 
 // GetDB  获取数据库
@@ -192,99 +153,12 @@ func GetRedis(ctx context.Context, name string) *redis.Client {
 	return redis
 }
 
-// moduleConfig 模块配置
-type moduleConfig[T any] struct {
-	name     string
-	init     func() (T, reflect.Kind)
-	instance atomic.Value
-}
-
-func (mc *moduleConfig[T]) preload(ctx context.Context) {
-	cfg, err := configWatcher.ReadConfig(ctx, mc.name)
-	if err != nil {
-		panic(err)
-	}
-	newInstance, kind := mc.init()
-	if kind == reflect.Pointer {
-		if err := cfg.Decode(newInstance); err != nil {
-			panic(err)
-		}
-	} else {
-		if err := cfg.Decode(&newInstance); err != nil {
-			panic(err)
-		}
-	}
-
-	mc.instance.Store(newInstance)
-}
-
-// MustGet 实现contract.ConfigInterface Instance
-func (mc *moduleConfig[T]) Instance() T {
-	return mc.instance.Load().(T)
-}
-
-func (mc *moduleConfig[T]) parserConfig(dec component.ConfigDecoder) error {
-	newInstance, kind := mc.init()
-	if kind == reflect.Pointer {
-		if err := dec.Decode(newInstance); err != nil {
-			return err
-		}
-	} else {
-		if err := dec.Decode(&newInstance); err != nil {
-			return err
-		}
-	}
-	mc.instance.Store(newInstance)
-	return nil
-}
-
-// SpanWatch 实现contract.ConfigInterface SpanWatch接口
-func (mc *moduleConfig[T]) SpanWatch(ctx context.Context, setter func(T) error) {
-	cfg, err := configWatcher.ReadConfig(ctx, mc.name)
-	if err != nil {
-		panic(fmt.Errorf("read config error: %w", err))
-	}
-	if err := mc.parserConfig(cfg); err != nil {
-		panic(fmt.Errorf("parse config error: %w", err))
-	}
-	if err := setter(mc.Instance()); err != nil {
-		panic(fmt.Errorf("set config error: %w", err))
-	}
-	logger.Info("module config watch start", "name", mc.name)
-	iterator := configWatcher.WatchConfig(ctx, mc.name)
-	go func() {
-		for {
-			cfg, err := iterator.Next()
-			if err != nil {
-				if errors.Is(err, context.DeadlineExceeded) || errors.Is(err, context.Canceled) {
-					logger.Info("module config watch timeout", "name", mc.name)
-					return
-				}
-				logger.Error("module config watch error", "name", mc.name, "error", err)
-				return
-			}
-			if err := mc.parserConfig(cfg); err != nil {
-				logger.Error("module config watch parse error", "name", mc.name, "error", err)
-			}
-			if err := setter(mc.Instance()); err != nil {
-				logger.Error("module config watch setter error", "name", mc.name, "error", err)
-				// TODO: terminate app
-			} else {
-				logger.Info("module config watch setter success", "name", mc.name)
-			}
-		}
-	}()
-}
-
 // GetConfig 获取配置
 func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
 	mr := objectContainerFromCtx(ctx)
 	return mr.config.MustGetOrInit(func() any {
-		mc := &moduleConfig[T]{
-			name: mr.opts.ConfigName,
-			init: helper.ZeroWithKind[T],
-		}
-		mc.preload(ctx)
+		mc := config.NewModuleConfig(configWatcher, mr.opts.ConfigName, helper.ZeroWithKind[T])
+		mc.Preload(ctx)
 		return mc
-	}).(*moduleConfig[T])
+	}).(*config.ModuleConfig[T])
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/config"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
 	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
@@ -87,7 +88,7 @@ func Run(name string) {
 
 	if err := box.Bootstrap[bootstrap.Engine](
 		yamlconfig.Init(),
-		box.UseConfigLoader("runtime", &runtimeConfigLoader{}),
+		box.UseConfigLoader("app", config.NewAppConfigLoader(appConfigName)),
 	); err != nil {
 		logger.Error("engine is stopped", "error", err)
 	}
