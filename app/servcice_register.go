@@ -203,6 +203,4 @@ func (s *serviceRegisterRunable) Enabled() bool {
 	return true
 }
 
-func (s *serviceRegisterRunable) GracefulStop() {
-
-}
+func (s *serviceRegisterRunable) GracefulStop() {}
