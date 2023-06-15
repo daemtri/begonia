@@ -49,7 +49,7 @@ func (d *DistrubutedLockerBootloader) Boot(log *logx.Logger) error {
 	d.LockValue = fmt.Sprintf("%s:%s", runtime.GetServiceName(), runtime.GetServiceID())
 	d.Logger = log
 	var err error
-	d.Client, err = redis.NewRedis(context.Background(), &redis.Option{
+	d.Client, err = redis.NewRedis(context.Background(), &redis.Options{
 		Addr:     d.addr,
 		DB:       d.db,
 		Username: d.username,
