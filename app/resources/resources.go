@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
+	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
+	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
-	"github.com/redis/go-redis/v9"
-	"github.com/segmentio/kafka-go"
 )
 
 type DBConfig struct {
@@ -22,41 +23,44 @@ type RedisConfig struct {
 	Addr     string `json:"addr"`
 	Username string `json:"username"`
 	Password string `json:"password"`
+	DB       int    `json:"db"`
 }
 
-type KafkaConfig struct {
-	Name string `json:"name"`
-	Addr string `json:"addr"`
+type PubSubConfig struct {
+	Name    string `json:"name"`
+	Driver  string `json:"driver"`
+	Brokers string `json:"brokers"`
+	Group   string `json:"group"` // 仅在消费者中有效
 }
 
 type Config struct {
-	Redis []RedisConfig `yaml:"redis"`
-	DB    []DBConfig    `yaml:"db"`
-	Kafka []KafkaConfig `yaml:"kafka"`
+	Redis  []RedisConfig  `yaml:"redis"`
+	DB     []DBConfig     `yaml:"db"`
+	PubSub []PubSubConfig `yaml:"pubsub"`
 }
 
 func (r *Config) GetDBConfig(name string) *DBConfig {
-	for _, db := range r.DB {
-		if db.Name == name {
-			return &db
+	for _, cfg := range r.DB {
+		if cfg.Name == name {
+			return &cfg
 		}
 	}
 	return nil
 }
 
 func (r *Config) GetRedisConfig(name string) *RedisConfig {
-	for _, redis := range r.Redis {
-		if redis.Name == name {
-			return &redis
+	for _, cfg := range r.Redis {
+		if cfg.Name == name {
+			return &cfg
 		}
 	}
 	return nil
 }
 
-func (r *Config) GetKafkaConfig(name string) *KafkaConfig {
-	for _, kafka := range r.Kafka {
-		if kafka.Name == name {
-			return &kafka
+func (r *Config) GetPubSubConfig(name string) *PubSubConfig {
+	for _, cfg := range r.PubSub {
+		if cfg.Name == name {
+			return &cfg
 		}
 	}
 	return nil
@@ -67,8 +71,9 @@ type Manager struct {
 	config   *Config
 
 	dbClients    helper.OnceMap[string, *sql.DB]
-	redisClients helper.OnceMap[string, *redis.Client]
-	kafkaClients helper.OnceMap[string, *kafka.Conn]
+	redisClients helper.OnceMap[string, *redis.Redis]
+	publisher    helper.OnceMap[string, pubsub.Publisher]
+	subscriber   helper.OnceMap[string, pubsub.Subscriber]
 }
 
 func NewManager(ctx context.Context, configor component.Configurator) (*Manager, error) {
@@ -103,31 +108,50 @@ func (m *Manager) GetDB(ctx context.Context, name string) (*sql.DB, error) {
 	})
 }
 
-func (m *Manager) GetRedis(ctx context.Context, name string) (*redis.Client, error) {
-	return m.redisClients.GetOrInit(name, func() (*redis.Client, error) {
+func (m *Manager) GetRedis(ctx context.Context, name string) (*redis.Redis, error) {
+	return m.redisClients.GetOrInit(name, func() (*redis.Redis, error) {
 		cfg := m.config.GetRedisConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("redis name %s config not found", name)
 		}
-		client := redis.NewClient(&redis.Options{
+		return redis.NewRedis(ctx, &redis.Options{
 			Addr:     cfg.Addr,
 			Username: cfg.Username,
 			Password: cfg.Password,
+			DB:       cfg.DB,
 		})
-		return client, nil
 	})
 }
 
-func (m *Manager) GetKafka(ctx context.Context, name string) (*kafka.Conn, error) {
-	return m.kafkaClients.GetOrInit(name, func() (*kafka.Conn, error) {
-		cfg := m.config.GetKafkaConfig(name)
+func (m *Manager) GetMsgSubscriber(ctx context.Context, name string) (pubsub.Subscriber, error) {
+	return m.subscriber.GetOrInit(name, func() (pubsub.Subscriber, error) {
+		cfg := m.config.GetPubSubConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("kafka name %s config not found", name)
 		}
-		conn, err := kafka.Dial("tcp", cfg.Addr)
+		c, err := kafka.NewConsumer(&kafka.ConsumerOption{
+			Brokers: cfg.Brokers,
+			Group:   cfg.Group,
+		})
 		if err != nil {
-			return nil, fmt.Errorf("dial kafka %s error: %w", name, err)
+			return nil, err
 		}
-		return conn, nil
+		return pubsub.NewKafkaSubscriber(c), nil
+	})
+}
+
+func (m *Manager) GetMsgPublisher(ctx context.Context, name string) (pubsub.Publisher, error) {
+	return m.publisher.GetOrInit(name, func() (pubsub.Publisher, error) {
+		cfg := m.config.GetPubSubConfig(name)
+		if cfg == nil {
+			return nil, fmt.Errorf("kafka name %s config not found", name)
+		}
+		p, err := kafka.NewProducer(&kafka.ProducerOption{
+			Brokers: cfg.Brokers,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return pubsub.NewKafkaPublisher(p), nil
 	})
 }

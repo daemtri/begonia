@@ -14,6 +14,7 @@ type Consumer struct {
 
 type ConsumerOption struct {
 	Brokers string `flag:"brokers" default:"127.0.0.1:9092" usage:"Kafka bootstrap Brokers to connect to, as a comma separated list"`
+	Group   string `flag:"group" usage:"消费组"`
 }
 
 func NewConsumer(opt *ConsumerOption) (*Consumer, error) {
@@ -22,10 +23,10 @@ func NewConsumer(opt *ConsumerOption) (*Consumer, error) {
 
 type Reader = kafka.Reader
 
-func (th *Consumer) NewReader(ctx context.Context, group string, topics ...string) *Reader {
+func (th *Consumer) NewReader(ctx context.Context, topics ...string) *Reader {
 	return kafka.NewReader(kafka.ReaderConfig{
 		Brokers:     strings.Split(th.opts.Brokers, ","), // Kafka brokers
-		GroupID:     group,
+		GroupID:     th.opts.Group,
 		GroupTopics: topics,
 	})
 }

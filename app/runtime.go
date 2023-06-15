@@ -5,16 +5,16 @@ import (
 	"database/sql"
 	"fmt"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/app/client"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/config"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/header"
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
-	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap/client"
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
+	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
-	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 )
 
@@ -42,8 +42,27 @@ func GetScheduler(ctx context.Context) contract.Scheduler {
 }
 
 // GetMsgPublisher 获取消息队列
-func GetMsgPublisher(ctx context.Context) pubsub.Publisher {
-	panic("unimplement")
+func GetMsgPublisher(ctx context.Context, name string) pubsub.Publisher {
+	if !depency.Allow(GeCurrentModule(ctx), "kafka", name) {
+		panic(fmt.Errorf("module %s not allow to use kafka %s", GeCurrentModule(ctx), name))
+	}
+	p, err := resourcesManager.GetMsgPublisher(ctx, name)
+	if err != nil {
+		panic(err)
+	}
+	return p
+}
+
+// GetMsgPublisher 获取消息队列
+func GetMsgSubscriber(ctx context.Context, name string) pubsub.Subscriber {
+	if !depency.Allow(GeCurrentModule(ctx), "kafka", name) {
+		panic(fmt.Errorf("module %s not allow to use kafka %s", GeCurrentModule(ctx), name))
+	}
+	s, err := resourcesManager.GetMsgSubscriber(ctx, name)
+	if err != nil {
+		panic(err)
+	}
+	return s
 }
 
 // GetServiceConn
@@ -92,7 +111,7 @@ func GetDB(ctx context.Context, name string) *sql.DB {
 }
 
 // GetRedis 获取redis
-func GetRedis(ctx context.Context, name string) *redis.Client {
+func GetRedis(ctx context.Context, name string) *redis.Redis {
 	if !depency.Allow(GeCurrentModule(ctx), "redis", name) {
 		panic(fmt.Errorf("module %s not allow to use redis %s", GeCurrentModule(ctx), name))
 	}

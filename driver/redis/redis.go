@@ -16,24 +16,7 @@ import (
 
 var logger = logx.GetLogger("/gf/driver/redis")
 
-// Redis 组件
-type Redis struct {
-	option Option
-
-	*redis.Client
-
-	refreshScriptHash string
-
-	delScriptHash string
-
-	getDelString string
-
-	hashSafelyDecrString string
-
-	cmpSetScriptHash string
-}
-
-type Option struct {
+type Options struct {
 	Addr            string        `flag:"addr" default:"127.0.0.1:6379" usage:"Redis host and port, like: 127.0.0.1:6379"`
 	Username        string        `flag:"username" default:"" usage:"Redis username"`
 	Password        string        `flag:"password" default:"" usage:"Redis password"`
@@ -45,7 +28,17 @@ type Option struct {
 	LargeKeyLen     int           `flag:"large-key-len" default:"10240" usage:"the limits of checkLargeKey function"`
 }
 
-func NewRedis(_ context.Context, option *Option) (*Redis, error) {
+// Redis 组件
+type Redis struct {
+	*redis.Client
+	refreshScriptHash    string
+	delScriptHash        string
+	getDelString         string
+	hashSafelyDecrString string
+	cmpSetScriptHash     string
+}
+
+func NewRedis(_ context.Context, option *Options) (*Redis, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:        option.Addr,
 		Username:    option.Username,
@@ -55,9 +48,8 @@ func NewRedis(_ context.Context, option *Option) (*Redis, error) {
 		DB:          option.DB,
 	})
 	if option.DisableDelayCmd {
-		client.AddHook(disableCmd{})
+		client.AddHook(disableCmd{largeKeyLen: option.LargeKeyLen})
 	}
-	redisOption = option
 
 	return &Redis{Client: client}, nil
 }
@@ -224,9 +216,9 @@ RedisCmpSetAction:
 }
 
 // disableCmd redis 命令禁用hook
-type disableCmd struct{}
-
-var redisOption *Option
+type disableCmd struct {
+	largeKeyLen int
+}
 
 func isDisableCmd(cmds ...redis.Cmder) error {
 	for _, cmd := range cmds {
@@ -247,7 +239,7 @@ func (th disableCmd) DialHook(next redis.DialHook) redis.DialHook {
 
 func (th disableCmd) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
 	return func(ctx context.Context, cmd redis.Cmder) error {
-		checkLargeKey(cmd)
+		checkLargeKey(th.largeKeyLen, cmd)
 		if err := isDisableCmd(cmd); err != nil {
 			return err
 		}
@@ -257,7 +249,7 @@ func (th disableCmd) ProcessHook(next redis.ProcessHook) redis.ProcessHook {
 
 func (th disableCmd) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []redis.Cmder) error {
-		checkLargeKey(cmds...)
+		checkLargeKey(th.largeKeyLen, cmds...)
 		if err := isDisableCmd(cmds...); err != nil {
 			return err
 		}
@@ -265,41 +257,7 @@ func (th disableCmd) ProcessPipelineHook(next redis.ProcessPipelineHook) redis.P
 	}
 }
 
-func IsEmptyErr(err string) bool {
-	return err == "redis: nil"
-}
-
-// DefaultKeyTTL key默认过期时长
-func DefaultKeyTTL() time.Duration {
-	return redisOption.DefaultKeyTTL
-}
-
-// UserKey 用户类Redis Key
-func UserKey(format string, a ...any) string {
-	return redisKey("u:", format, a...)
-}
-
-// TaskKey 任务类Redis Key
-func TaskKey(format string, a ...any) string {
-	return redisKey("t:", format, a...)
-}
-
-// ActKey 活动类Redis Key
-func ActKey(format string, a ...any) string {
-	return redisKey("a:", format, a...)
-}
-
-// MGKey 小游戏类Redis Key
-func MGKey(format string, a ...any) string {
-	return redisKey("mg:", format, a...)
-}
-
-func redisKey(prefix, format string, a ...any) string {
-	s := prefix + format
-	return fmt.Sprintf(s, a...)
-}
-
-func checkLargeKey(cmds ...redis.Cmder) {
+func checkLargeKey(largeKeyLen int, cmds ...redis.Cmder) {
 	for _, cmd := range cmds {
 		args := cmd.Args()
 		if len(args) <= 2 {
@@ -312,20 +270,20 @@ func checkLargeKey(cmds ...redis.Cmder) {
 			case string:
 				s := val.(string)
 				size := len(s)
-				if size >= redisOption.LargeKeyLen {
+				if size >= largeKeyLen {
 					largeKeyLog(args[0].(string), args[1].(string), size)
 				}
 			case []byte:
 				s := val.([]byte)
 				size := len(s)
-				if size >= redisOption.LargeKeyLen {
+				if size >= largeKeyLen {
 					largeKeyLog(args[0].(string), args[1].(string), size)
 				}
 			case encoding.BinaryMarshaler:
 				b, err := v.MarshalBinary()
 				if err == nil {
 					size := len(b)
-					if size >= redisOption.LargeKeyLen {
+					if size >= largeKeyLen {
 						largeKeyLog(args[0].(string), args[1].(string), size)
 					}
 				}

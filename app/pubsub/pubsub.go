@@ -1,38 +1,22 @@
 package pubsub
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"hash/crc32"
-	"time"
+import "context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
-)
+type Message interface {
+	Topic() string
+	Value() []byte
+}
 
 type Publisher interface {
-	Publish(ctx context.Context, topic string, msg any) error
+	Publish(ctx context.Context, msg Message) error
 }
 
-type kafkaPublisher struct {
-	producer *kafka.Producer
+type Subscriber interface {
+	Subscribe(ctx context.Context, topic ...string) MessageReader
 }
 
-func NewKafkaPublisher(producer *kafka.Producer) Publisher {
-	p := &kafkaPublisher{
-		producer: producer,
-	}
-	return p
-}
-
-func (ks *kafkaPublisher) Publish(ctx context.Context, topic string, msg any) error {
-	v, err := json.Marshal(msg)
-	if err != nil {
-		return err
-	}
-	return ks.producer.WriteMessage(ctx, kafka.Message{
-		Topic: topic,
-		Key:   []byte(fmt.Sprintf("%d:%d", time.Now().UnixNano(), crc32.ChecksumIEEE(v))),
-		Value: v,
-	})
+type MessageReader interface {
+	// Next returns the next message from the Reader.
+	// if pre message exists and not commit,this will commit it before read next message
+	Next() (Message, error)
 }
