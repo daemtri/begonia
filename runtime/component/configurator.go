@@ -35,7 +35,7 @@ type Configurator interface {
 	// ReadConfig 获取应用配置
 	ReadConfig(ctx context.Context, name string) (ConfigDecoder, error)
 	// WatchConfig 获取应用配置
-	WatchConfig(ctx context.Context, name string) Iterator[ConfigDecoder]
+	WatchConfig(ctx context.Context, name string) Stream[ConfigDecoder]
 }
 
 type ConfigItem = struct {

@@ -89,26 +89,26 @@ func (c *container) load(typ reflect.Type, name string) (any, error) {
 	return v, nil
 }
 
-type Iterator[T any] interface {
+type Stream[T any] interface {
 	Stop()
 	Next() (T, error)
 }
 
-type ChanIterator[T any] struct {
+type ChanStream[T any] struct {
 	ctx     context.Context
 	ch      chan T
 	errChan chan error
 }
 
-func NewChanIterator[T any](ctx context.Context) *ChanIterator[T] {
-	return &ChanIterator[T]{
+func NewChanStream[T any](ctx context.Context) *ChanStream[T] {
+	return &ChanStream[T]{
 		ctx:     ctx,
 		ch:      make(chan T, 1),
 		errChan: make(chan error),
 	}
 }
 
-func (ci *ChanIterator[T]) Send(x T, e error) {
+func (ci *ChanStream[T]) Send(x T, e error) {
 	if e != nil {
 		ci.errChan <- e
 	} else {
@@ -116,7 +116,7 @@ func (ci *ChanIterator[T]) Send(x T, e error) {
 	}
 }
 
-func (ci *ChanIterator[T]) Next() (t T, e error) {
+func (ci *ChanStream[T]) Next() (t T, e error) {
 	select {
 	case <-ci.ctx.Done():
 		e = ci.ctx.Err()
@@ -129,17 +129,17 @@ func (ci *ChanIterator[T]) Next() (t T, e error) {
 	}
 }
 
-func (ci *ChanIterator[T]) Stop() {
+func (ci *ChanStream[T]) Stop() {
 	close(ci.ch)
 	close(ci.errChan)
 }
 
-type IteratorFunc[T any] func(stop bool) (T, error)
+type StreamFunc[T any] func(stop bool) (T, error)
 
-func (it IteratorFunc[T]) Stop() {
+func (it StreamFunc[T]) Stop() {
 	_, _ = it(true)
 }
 
-func (it IteratorFunc[T]) Next() (T, error) {
+func (it StreamFunc[T]) Next() (T, error) {
 	return it(false)
 }

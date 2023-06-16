@@ -101,8 +101,8 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	}, nil
 }
 
-func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
-	ci := component.NewChanIterator[*component.Service](ctx)
+func (r *Registry) Watch(ctx context.Context, name string) component.Stream[*component.Service] {
+	ci := component.NewChanStream[*component.Service](ctx)
 	ci.Send(r.Browse(ctx, name))
 	return nil
 }

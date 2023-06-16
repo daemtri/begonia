@@ -113,7 +113,7 @@ func parseNameAndGroup(name string) (string, string) {
 	return parts[1], parts[0]
 }
 
-func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Iterator[component.ConfigDecoder] {
+func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Stream[component.ConfigDecoder] {
 	group, parsedName := parseNameAndGroup(name)
 	return newWatcher(c, parsedName, group, ctx)
 }

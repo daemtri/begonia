@@ -111,7 +111,7 @@ func (c *Configurator) init() error {
 	return nil
 }
 
-func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Iterator[component.ConfigDecoder] {
+func (c *Configurator) WatchConfig(ctx context.Context, name string) component.Stream[component.ConfigDecoder] {
 	cfgFile := filepath.Join(c.configDir, name+".yaml")
 	return &configfileIterator{Configurator: c, cfgFile: cfgFile, ctx: ctx}
 }

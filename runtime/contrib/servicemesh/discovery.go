@@ -183,9 +183,9 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	}
 }
 
-func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
+func (r *Registry) Watch(ctx context.Context, name string) component.Stream[*component.Service] {
 	var lastServcie *component.Service
-	return component.IteratorFunc[*component.Service](func(stop bool) (*component.Service, error) {
+	return component.StreamFunc[*component.Service](func(stop bool) (*component.Service, error) {
 		if stop {
 			return nil, fmt.Errorf("stop watch")
 		}

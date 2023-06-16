@@ -137,12 +137,12 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	return s, nil
 }
 
-func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
+func (r *Registry) Watch(ctx context.Context, name string) component.Stream[*component.Service] {
 	w, err := r.clientset.CoreV1().Endpoints(r.namespace).Watch(ctx, metav1.ListOptions{
 		FieldSelector: fmt.Sprintf("metadata.name=%s", name),
 	})
 	resultChan := w.ResultChan()
-	return component.IteratorFunc[*component.Service](func(stop bool) (*component.Service, error) {
+	return component.StreamFunc[*component.Service](func(stop bool) (*component.Service, error) {
 		if stop {
 			w.Stop()
 			return nil, nil

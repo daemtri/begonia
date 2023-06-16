@@ -99,13 +99,13 @@ func (r *Registry) Browse(ctx context.Context, name string) (*component.Service,
 	return parserService(dec, name)
 }
 
-func (r *Registry) Watch(ctx context.Context, name string) component.Iterator[*component.Service] {
+func (r *Registry) Watch(ctx context.Context, name string) component.Stream[*component.Service] {
 	iterator := configWatcher.WatchConfig(ctx, r.path)
 	return &configDiscoveryIterator{iter: iterator, name: name}
 }
 
 type configDiscoveryIterator struct {
-	iter component.Iterator[component.ConfigDecoder]
+	iter component.Stream[component.ConfigDecoder]
 	name string
 }
 

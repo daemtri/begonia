@@ -25,7 +25,7 @@ type Discovery interface {
 	// Browse 查询指定name的所有ServiceEntry
 	Browse(ctx context.Context, name string) (*Service, error)
 	// Watch 监听服务变化
-	Watch(ctx context.Context, name string) Iterator[*Service]
+	Watch(ctx context.Context, name string) Stream[*Service]
 }
 
 // ServiceEntry 表示一个APP(Service)在服务发现系统中的一个实例(节点)

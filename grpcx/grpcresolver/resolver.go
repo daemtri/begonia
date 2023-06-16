@@ -128,7 +128,7 @@ func (sr *sgrResolver) updateClientConnState() {
 	}
 }
 
-func (sr *sgrResolver) watch(iter component.Iterator[*component.Service]) {
+func (sr *sgrResolver) watch(iter component.Stream[*component.Service]) {
 	emptyTimer := time.NewTimer(DefaultUpdateEmptyConnStateDelay)
 	emptyTimer.Stop()
 	ch := make(chan *component.Service, 1)
