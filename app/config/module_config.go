@@ -4,25 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"reflect"
 	"sync/atomic"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 )
 
 // moduleConfig 模块配置
-type ModuleConfig[T any] struct {
+type ModuleConfig[T constraintx.Default[T]] struct {
 	driver   component.Configurator
 	name     string
-	init     func() (T, reflect.Kind)
 	instance atomic.Value
 }
 
-func NewModuleConfig[T any](driver component.Configurator, name string, init func() (T, reflect.Kind)) *ModuleConfig[T] {
+func NewModuleConfig[T constraintx.Default[T]](driver component.Configurator, name string) *ModuleConfig[T] {
 	return &ModuleConfig[T]{
 		driver: driver,
 		name:   name,
-		init:   init,
 	}
 }
 
@@ -31,18 +29,9 @@ func (mc *ModuleConfig[T]) Preload(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	newInstance, kind := mc.init()
-	if kind == reflect.Pointer {
-		if err := cfg.Decode(newInstance); err != nil {
-			panic(err)
-		}
-	} else {
-		if err := cfg.Decode(&newInstance); err != nil {
-			panic(err)
-		}
+	if err := mc.parserConfig(cfg); err != nil {
+		panic(err)
 	}
-
-	mc.instance.Store(newInstance)
 }
 
 // MustGet 实现contract.ConfigInterface Instance
@@ -51,15 +40,10 @@ func (mc *ModuleConfig[T]) Instance() T {
 }
 
 func (mc *ModuleConfig[T]) parserConfig(dec component.ConfigDecoder) error {
-	newInstance, kind := mc.init()
-	if kind == reflect.Pointer {
-		if err := dec.Decode(newInstance); err != nil {
-			return err
-		}
-	} else {
-		if err := dec.Decode(&newInstance); err != nil {
-			return err
-		}
+	var newInstance T
+	newInstance = newInstance.Default()
+	if err := dec.Decode(newInstance); err != nil {
+		panic(err)
 	}
 	mc.instance.Store(newInstance)
 	return nil

@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
 	"google.golang.org/grpc"
 )
 
@@ -25,7 +26,7 @@ type PubSubInterface interface {
 }
 
 // ConfigInterface 配置接口
-type ConfigInterface[T any] interface {
+type ConfigInterface[T constraintx.Default[T]] interface {
 	// Instance 用于获取配置项的值，如果配置项不存在则返回默认值，
 	// 如果配置类型是指针，则返回nil。
 	Instance() T

@@ -13,7 +13,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
 	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
+	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"google.golang.org/grpc"
 )
@@ -123,10 +123,10 @@ func GetRedis(ctx context.Context, name string) *redis.Redis {
 }
 
 // GetConfig 获取配置
-func GetConfig[T any](ctx context.Context) contract.ConfigInterface[T] {
+func GetConfig[T constraintx.Default[T]](ctx context.Context) contract.ConfigInterface[T] {
 	mr := objectContainerFromCtx(ctx)
 	return mr.config.MustGetOrInit(func() any {
-		mc := config.NewModuleConfig(configWatcher, mr.opts.ConfigName, helper.ZeroWithKind[T])
+		mc := config.NewModuleConfig[T](configWatcher, mr.opts.ConfigName)
 		mc.Preload(ctx)
 		return mc
 	}).(*config.ModuleConfig[T])
