@@ -1,17 +1,24 @@
 package db
 
 import (
-	"database/sql"
+	"github.com/jmoiron/sqlx"
 )
 
 type Options struct {
-	DSN string `flag:"dsn" default:"" usage:"连接地址"`
+	DriverName string `flag:"driver_name" default:"mysql" usage:"驱动"`
+	DSN        string `flag:"dsn" default:"" usage:"连接地址"`
 }
 
-func NewDB(opt *Options) (*sql.DB, error) {
-	db, err := sql.Open("mysql", opt.DSN)
+type Database struct {
+	*sqlx.DB
+}
+
+func NewDB(opt *Options) (*Database, error) {
+	db, err := sqlx.Open(opt.DriverName, opt.DSN)
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return &Database{
+		DB: db,
+	}, nil
 }
