@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
+	"git.bianfeng.com/stars/wegame/wan/wanx/driver/db"
 	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
 	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
-	"github.com/jmoiron/sqlx"
 )
 
 type DBConfig struct {
@@ -70,7 +70,7 @@ type Manager struct {
 	configor component.Configurator
 	config   *Config
 
-	dbClients    helper.OnceMap[string, *sqlx.DB]
+	dbClients    helper.OnceMap[string, *db.Database]
 	redisClients helper.OnceMap[string, *redis.Redis]
 	publisher    helper.OnceMap[string, pubsub.Publisher]
 	subscriber   helper.OnceMap[string, pubsub.Subscriber]
@@ -94,13 +94,16 @@ func (m *Manager) init(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) GetDB(ctx context.Context, name string) (*sqlx.DB, error) {
-	return m.dbClients.GetOrInit(name, func() (*sqlx.DB, error) {
+func (m *Manager) GetDB(ctx context.Context, name string) (*db.Database, error) {
+	return m.dbClients.GetOrInit(name, func() (*db.Database, error) {
 		cfg := m.config.GetDBConfig(name)
 		if cfg == nil {
 			return nil, fmt.Errorf("db name %s config not found", name)
 		}
-		db, err := sqlx.Open(cfg.Driver, cfg.DataSourceName)
+		db, err := db.NewDB(&db.Options{
+			DriverName: cfg.Driver,
+			DSN:        cfg.DataSourceName,
+		})
 		if err != nil {
 			return nil, fmt.Errorf("open db %s error: %w", name, err)
 		}
