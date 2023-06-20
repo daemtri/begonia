@@ -66,7 +66,7 @@ func GetMsgSubscriber(ctx context.Context, name string) pubsub.Subscriber {
 }
 
 // GetServiceConn
-func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
+func GetService(ctx context.Context, name string) grpc.ClientConnInterface {
 	if !depency.Allow(GeCurrentModule(ctx), "app", name) {
 		panic(fmt.Errorf("module %s not allow to call app %s", GeCurrentModule(ctx), name))
 	}
@@ -79,7 +79,7 @@ func GetServiceConn(ctx context.Context, name string) grpc.ClientConnInterface {
 	})
 }
 
-func GetClusterConn(ctx context.Context, name string, id string) grpc.ClientConnInterface {
+func GetCluster(ctx context.Context, name string, id string) grpc.ClientConnInterface {
 	if !depency.Allow(GeCurrentModule(ctx), "app", name) {
 		panic(fmt.Errorf("module %s not allow to call app %s", GeCurrentModule(ctx), name))
 	}
