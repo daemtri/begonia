@@ -2,7 +2,6 @@ package app
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/app/client"
@@ -15,6 +14,7 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc"
 )
 
@@ -99,7 +99,7 @@ func GetUserInfo(ctx context.Context) contract.UserInfoInterface {
 }
 
 // GetDB  获取数据库
-func GetDB(ctx context.Context, name string) *sql.DB {
+func GetDB(ctx context.Context, name string) *sqlx.DB {
 	if !depency.Allow(GeCurrentModule(ctx), "db", name) {
 		panic(fmt.Errorf("module %s not allow to use db %s", GeCurrentModule(ctx), name))
 	}

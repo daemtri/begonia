@@ -15,6 +15,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/go-cmp v0.5.9
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
+	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/maruel/panicparse/v2 v2.3.1
 	github.com/nacos-group/nacos-sdk-go/v2 v2.2.2
