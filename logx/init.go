@@ -5,10 +5,7 @@ import (
 	"fmt"
 
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"golang.org/x/exp/slog"
 )
-
-type Logger = slog.Logger
 
 func Recover(l *Logger) {
 	if r := recover(); r != nil {

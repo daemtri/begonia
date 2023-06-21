@@ -1,5 +1,9 @@
 package logx
 
+var (
+	globalConfig = Config{}
+)
+
 type Config struct {
 	// 默认日志output
 	Default string `flag:"default"  usage:"default handler"`
@@ -15,25 +19,7 @@ type Config struct {
 	Logger map[string]string `flag:"logger" default:"" usage:"Component log configuration"`
 }
 
-var (
-	handlerManagers map[string]*handlerManager = make(map[string]*handlerManager)
-)
-
 func InitConfig(cfg Config) error {
-	for k, v := range cfg.Handler {
-		hm, ok := handlerManagers[k]
-		if ok {
-			err := hm.configure(v)
-			if err != nil {
-				return err
-			}
-			continue
-		}
-		hm, err := newHandlerManager(v)
-		if err != nil {
-			return err
-		}
-		handlerManagers[k] = hm
-	}
+	globalConfig = cfg
 	return nil
 }
