@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"encoding"
+	"errors"
 	"fmt"
 	"net"
 	"strconv"
@@ -31,11 +32,12 @@ type Options struct {
 // Redis 组件
 type Redis struct {
 	*redis.Client
-	refreshScriptHash    string
-	delScriptHash        string
-	getDelString         string
-	hashSafelyDecrString string
-	cmpSetScriptHash     string
+	refreshScriptHash                   string
+	delScriptHash                       string
+	getDelString                        string
+	hashSafelyDecrString                string
+	cmpSetScriptHash                    string
+	maxWithSocresCheckExpiredScriptHash string
 }
 
 func NewRedis(_ context.Context, option *Options) (*Redis, error) {
@@ -213,6 +215,48 @@ RedisCmpSetAction:
 		return 0, err
 	}
 	return result, nil
+}
+
+const maxWithSocresCheckExpiredScript = `
+local function zrange_check_expire(z1, z2)
+    local result = {}
+    local key_score = redis.call('ZREVRANGE', z1, 0, 0, 'WITHSCORES')
+    if #key_score == 0 then
+        return nil
+    end
+    result.key = key_score[1]
+    result.score = key_score[2]
+    local expire = redis.call('ZSCORE', z2, result.key)
+    if not expire or tonumber(expire) > tonumber(redis.call('TIME')[1]) then
+        return result
+    else
+        redis.call('ZREM', z1, result.key)
+        redis.call('ZREM', z2, result.key)
+        return zrange_check_expire(z1, z2)
+    end
+end
+return zrange_check_expire(KEYS[1], KEYS[2])`
+
+func (r *Redis) MaxWithSocresCheckExpired(ctx context.Context, key string, expireKey string) (string, error) {
+	reloaded := false
+RedisAction:
+	if r.maxWithSocresCheckExpiredScriptHash == "" {
+		reloaded = true
+		scriptHash, err := r.FunctionLoad(ctx, maxWithSocresCheckExpiredScript).Result()
+		if err != nil {
+			return "", err
+		}
+		r.maxWithSocresCheckExpiredScriptHash = scriptHash
+	}
+	result, err := r.EvalSha(ctx, r.maxWithSocresCheckExpiredScriptHash, []string{key, expireKey}).Result()
+	if err != nil && !errors.Is(err, redis.Nil) {
+		if !reloaded {
+			r.maxWithSocresCheckExpiredScriptHash = ""
+			goto RedisAction
+		}
+		return "", err
+	}
+	return result.(string), nil
 }
 
 // disableCmd redis 命令禁用hook
