@@ -171,6 +171,7 @@ type dynamicAddSourcerHandler struct {
 
 func (h *dynamicAddSourcerHandler) Handle(ctx context.Context, r slog.Record) error {
 	if h.sourcer.addSource() {
+		h.sourcer.frame(r)
 		r.AddAttrs(slog.String(slog.SourceKey, "xxx"))
 	}
 	return h.Handler.Handle(ctx, r)
@@ -254,10 +255,6 @@ func (l *dynamicLeveler) Level() slog.Level {
 
 type dynamicAddSourcer struct {
 	addSourceValue bool
-}
-
-func newDynamicAddSourcer(v bool) *dynamicAddSourcer {
-	return &dynamicAddSourcer{addSourceValue: v}
 }
 
 func (s *dynamicAddSourcer) setAddSource(addsource bool) {
