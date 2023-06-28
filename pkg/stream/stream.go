@@ -1,27 +1,38 @@
 package stream
 
+import (
+	"context"
+	"errors"
+)
+
 type Stream[T any] interface {
-	Next() (T, error)
-}
-
-type onetream[T any] struct{ item T }
-
-func (os *onetream[T]) Next() (T, error) {
-	return os.item, nil
-}
-
-func One[T any](x T) Stream[T] {
-	return &onetream[T]{item: x}
+	Next(ctx context.Context) (T, error)
 }
 
 type Chan[T any] <-chan T
 
-func (c Chan[T]) Next() (T, error) {
-	return <-c, nil
+func (c Chan[T]) Next(ctx context.Context) (T, error) {
+	select {
+	case <-ctx.Done():
+		var x T
+		return x, ctx.Err()
+	case t, ok := <-c:
+		if !ok {
+			var x T
+			return x, errors.New("channel closed")
+		}
+		return t, nil
+	}
 }
 
-type Func[T any] func() (T, error)
+func One[T any](x T) Stream[T] {
+	ch := make(chan T, 1)
+	ch <- x
+	return Chan[T](ch)
+}
 
-func (fs Func[T]) Next() (T, error) {
-	return fs()
+type Func[T any] func(ctx context.Context) (T, error)
+
+func (fs Func[T]) Next(ctx context.Context) (T, error) {
+	return fs(ctx)
 }
