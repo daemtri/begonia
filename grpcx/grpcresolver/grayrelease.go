@@ -1,7 +1,8 @@
 package grpcresolver
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/slicemap"
+	"slices"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/coreos/go-semver/semver"
 )
@@ -21,12 +22,11 @@ func filterServiceEntry(sis []component.ServiceEntry, policy int) []component.Se
 	if len(sis) == 0 {
 		return sis
 	}
-	slicemap.Sort(sis, func(left, right component.ServiceEntry) bool {
-		// TODO: 优化性能
+	slices.SortFunc(sis, func(left, right component.ServiceEntry) int {
 		if policy <= 0 {
-			return semver.New(left.Version).LessThan(*semver.New(right.Version))
+			return semver.New(left.Version).Compare(*semver.New(right.Version))
 		}
-		return semver.New(right.Version).LessThan(*semver.New(left.Version))
+		return semver.New(right.Version).Compare(*semver.New(left.Version))
 	})
 	ret := make([]component.ServiceEntry, 0, len(sis))
 	ret = append(ret, sis[0])

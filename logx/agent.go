@@ -40,6 +40,7 @@ func createLogHandler(logger string, getHandlerAgent func(name string) *handlerA
 	if loggerHandlerStr == "" {
 		return slog.Default().Handler(), nil
 	}
+
 	handlerSlices := strings.Split(loggerHandlerStr, "+")
 	if len(handlerSlices) == 1 {
 		handlerName := strings.TrimSpace(handlerSlices[0])

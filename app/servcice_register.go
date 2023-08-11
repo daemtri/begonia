@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"slices"
 	"strconv"
 	"syscall"
 	"time"
@@ -18,7 +19,6 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/execx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/netx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/slicemap"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 )
@@ -146,7 +146,7 @@ func initRegisterApp(ctx context.Context, discovery component.Discovery, servers
 func getBroadCastHost() (string, error) {
 	if broadCastHost != "" {
 		localIP := netx.ListLocalIP()
-		if !slicemap.Contains(localIP, broadCastHost) {
+		if !slices.Contains(localIP, broadCastHost) {
 			logger.Warn("设置的BroadCastHost地址不在本地局域网IP列表", "use", broadCastHost, "local", localIP)
 		}
 		return broadCastHost, nil

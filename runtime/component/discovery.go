@@ -3,8 +3,8 @@ package component
 import (
 	"context"
 
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
+	"maps"
+	"slices"
 )
 
 type Service struct {
