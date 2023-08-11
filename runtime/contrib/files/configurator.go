@@ -9,12 +9,13 @@ import (
 	"path/filepath"
 	"sync"
 
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/chanpubsub"
 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/filepathx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/fsnotify/fsnotify"
-	"golang.org/x/exp/slog"
 	"sigs.k8s.io/yaml"
 )
 

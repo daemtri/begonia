@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/contract"
-	"golang.org/x/exp/slog"
 )
 
 type UserService struct {

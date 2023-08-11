@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type GrpcLogger struct {

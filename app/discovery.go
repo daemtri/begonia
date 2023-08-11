@@ -4,10 +4,12 @@ import (
 	"errors"
 	"flag"
 
+	"log/slog"
+
+	"context"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
-	"golang.org/x/exp/slog"
-	"golang.org/x/net/context"
 )
 
 var (

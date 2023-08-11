@@ -1,7 +1,7 @@
 package logx
 
 import (
-	"golang.org/x/exp/slog"
+	"log/slog"
 )
 
 type Logger = slog.Logger

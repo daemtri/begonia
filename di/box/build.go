@@ -7,10 +7,11 @@ import (
 	"strings"
 	"syscall"
 
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/di"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagx"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
-	"golang.org/x/exp/slog"
 )
 
 type Builder[T any] interface {

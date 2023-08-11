@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/cfgtable"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/apolloconfig"
@@ -13,7 +15,6 @@ import (
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/repository"
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/server"
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/service"
-	"golang.org/x/exp/slog"
 )
 
 func main() {

@@ -7,8 +7,9 @@ import (
 	"os"
 	"runtime"
 
+	"log/slog"
+
 	"github.com/joho/godotenv"
-	"golang.org/x/exp/slog"
 )
 
 func init() {

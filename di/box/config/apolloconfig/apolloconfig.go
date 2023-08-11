@@ -6,9 +6,10 @@ import (
 	"fmt"
 	"strings"
 
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
 	"github.com/shima-park/agollo"
-	"golang.org/x/exp/slog"
 )
 
 func Init() box.BuildOption {

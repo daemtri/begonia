@@ -9,7 +9,8 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/exp/slog"
+	"log/slog"
+
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 

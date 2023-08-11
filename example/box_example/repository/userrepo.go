@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"log/slog"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/client"
 	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/contract"
-	"golang.org/x/exp/slog"
 )
 
 type UserRedisRepository struct {

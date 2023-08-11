@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"log/slog"
+
+	"context"
+
 	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
 	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
-	"golang.org/x/exp/slog"
-	"golang.org/x/net/context"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
