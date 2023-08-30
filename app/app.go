@@ -30,7 +30,7 @@ var (
 	broadCastHost     string
 	enableSideCarMode bool
 	logger            = logx.GetLogger("app")
-	appConfigName     string
+	remoteConfigName  string
 )
 
 func Run(name string) {
@@ -38,7 +38,7 @@ func Run(name string) {
 
 	box.FlagSet().StringVar(&broadCastHost, "broadcast-host", broadCastHost, "默认广播地址")
 	box.FlagSet().BoolVar(&enableSideCarMode, "sidecar-enable", false, "开启sgr服务发现边车模式")
-	box.FlagSet().StringVar(&appConfigName, "remote-config", "", "remote配置文件路径")
+	box.FlagSet().StringVar(&remoteConfigName, "remote-config", "", "远程配置文件路径")
 
 	// 注册基础功能
 	box.Provide[*grpcx.ClientBuilder](grpcx.NewClientBuilder, box.WithFlags("grpc-client"))
@@ -87,7 +87,7 @@ func Run(name string) {
 
 	if err := box.Bootstrap[bootstrap.Engine](
 		yamlconfig.Init(),
-		box.UseConfigLoader("app", config.NewAppConfigLoader(appConfigName)),
+		box.UseConfigLoader("app", config.NewAppConfigLoader(remoteConfigName)),
 	); err != nil {
 		logger.Error("engine is stopped", "error", err)
 	}
