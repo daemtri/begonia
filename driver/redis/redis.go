@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"github.com/daemtri/begonia/logx"
 
 	"github.com/redis/go-redis/v9"
 )

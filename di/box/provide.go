@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
+	"github.com/daemtri/begonia/di"
+	"github.com/daemtri/begonia/di/box/validate"
 )
 
 func provide[T any](b Builder[T], opts ...Option) {

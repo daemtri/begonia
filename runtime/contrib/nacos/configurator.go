@@ -11,8 +11,8 @@ import (
 
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/di/box/validate"
+	"github.com/daemtri/begonia/runtime/component"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients"
 	"github.com/nacos-group/nacos-sdk-go/v2/clients/config_client"
 	"github.com/nacos-group/nacos-sdk-go/v2/common/constant"

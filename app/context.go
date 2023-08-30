@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/app/depency"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
+	"github.com/daemtri/begonia/app/depency"
+	"github.com/daemtri/begonia/pkg/helper"
 )
 
 type contextKey struct{ name string }

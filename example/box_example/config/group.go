@@ -1,8 +1,8 @@
 package config
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/cfgtable"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/config/table"
+	"github.com/daemtri/begonia/cfgtable"
+	"github.com/daemtri/begonia/example/box_example/config/table"
 )
 
 type Aggregation struct {

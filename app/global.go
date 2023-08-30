@@ -3,11 +3,11 @@ package app
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/app/resources"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/app/resources"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/grpcx"
+	"github.com/daemtri/begonia/pkg/helper"
+	"github.com/daemtri/begonia/runtime/component"
 	"google.golang.org/grpc"
 )
 

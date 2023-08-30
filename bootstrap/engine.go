@@ -3,8 +3,8 @@ package bootstrap
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"github.com/daemtri/begonia/di/container"
+	"github.com/daemtri/begonia/logx"
 	"golang.org/x/sync/errgroup"
 )
 

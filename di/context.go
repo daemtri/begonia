@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
-	dicontainer "git.bianfeng.com/stars/wegame/wan/wanx/di/container"
+	dicontainer "github.com/daemtri/begonia/di/container"
 )
 
 func withContext(ctx context.Context, c Context) context.Context {

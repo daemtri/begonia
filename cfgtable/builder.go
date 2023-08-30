@@ -7,7 +7,7 @@ import (
 	"reflect"
 	"strings"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/cfgtable/remote"
+	"github.com/daemtri/begonia/cfgtable/remote"
 )
 
 type RemoteBuilder[T Aggregation] struct {

@@ -9,9 +9,9 @@ import (
 
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
+	"github.com/daemtri/begonia/di"
+	"github.com/daemtri/begonia/di/box/flagx"
+	"github.com/daemtri/begonia/di/container"
 )
 
 type Builder[T any] interface {

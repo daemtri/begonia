@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagvar"
+	"github.com/daemtri/begonia/di/box/flagvar"
 )
 
 var (

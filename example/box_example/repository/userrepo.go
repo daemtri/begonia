@@ -6,8 +6,8 @@ import (
 
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/client"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/contract"
+	"github.com/daemtri/begonia/example/box_example/client"
+	"github.com/daemtri/begonia/example/box_example/contract"
 )
 
 type UserRedisRepository struct {

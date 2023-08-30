@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
+	"github.com/daemtri/begonia/pkg/constraintx"
 	"google.golang.org/grpc"
 )
 

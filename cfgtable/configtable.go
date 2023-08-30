@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/cfgtable/remote"
+	"github.com/daemtri/begonia/cfgtable/remote"
 )
 
 var _ ConfigInterface = &Config[string]{}

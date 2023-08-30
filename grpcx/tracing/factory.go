@@ -1,7 +1,7 @@
 package tracing
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"github.com/daemtri/begonia/logx"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/jaeger"
 	stdout "go.opentelemetry.io/otel/exporters/stdout/stdouttrace"

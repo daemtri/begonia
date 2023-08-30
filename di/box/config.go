@@ -3,8 +3,8 @@ package box
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
+	"github.com/daemtri/begonia/di/box/flagx"
+	"github.com/daemtri/begonia/di/box/validate"
 )
 
 type ConfigItem = struct {

@@ -5,10 +5,10 @@ import (
 	"os"
 	"os/signal"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/di_example/clients"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/di_example/httpservice"
+	"github.com/daemtri/begonia/di"
+	"github.com/daemtri/begonia/di/box/flagx"
+	"github.com/daemtri/begonia/example/di_example/clients"
+	"github.com/daemtri/begonia/example/di_example/httpservice"
 )
 
 func main() {

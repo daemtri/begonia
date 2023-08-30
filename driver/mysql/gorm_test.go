@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

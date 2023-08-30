@@ -13,14 +13,14 @@ import (
 	"syscall"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagvar"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/execx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/netx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/bootstrap"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/di/box/flagvar"
+	"github.com/daemtri/begonia/di/container"
+	"github.com/daemtri/begonia/pkg/execx"
+	"github.com/daemtri/begonia/pkg/netx"
+	"github.com/daemtri/begonia/runtime"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 func init() {

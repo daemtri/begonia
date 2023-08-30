@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/container"
+	"github.com/daemtri/begonia/di/container"
 )
 
 type RedisOptions struct {

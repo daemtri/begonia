@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/driver/redis"
+	"github.com/daemtri/begonia/logx"
+	"github.com/daemtri/begonia/runtime"
+	"github.com/daemtri/begonia/runtime/component"
 	mapset "github.com/deckarep/golang-set/v2"
 )
 

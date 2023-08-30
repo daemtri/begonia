@@ -7,8 +7,8 @@ import (
 	"net"
 	"testing"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcproxy"
-	testservice2 "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/testservice"
+	"github.com/daemtri/begonia/grpcx/grpcproxy"
+	testservice2 "github.com/daemtri/begonia/grpcx/testservice"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"

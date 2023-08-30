@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"sync"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/chanpubsub"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/logx"
+	"github.com/daemtri/begonia/pkg/chanpubsub"
+	"github.com/daemtri/begonia/pkg/syncx"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 var (

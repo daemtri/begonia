@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap"
-	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
+	"github.com/daemtri/begonia/bootstrap"
+	"github.com/daemtri/begonia/contract"
 	"github.com/go-chi/chi/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

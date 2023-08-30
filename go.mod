@@ -1,4 +1,4 @@
-module git.bianfeng.com/stars/wegame/wan/wanx
+module github.com/daemtri/begonia
 
 go 1.21
 

@@ -3,7 +3,7 @@ package helper
 import (
 	"sync"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
+	"github.com/daemtri/begonia/pkg/syncx"
 )
 
 type OnceCell[T any] struct {

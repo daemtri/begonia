@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"errors"
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
+	"github.com/daemtri/begonia/driver/redis"
 	"reflect"
 	"strings"
 	"time"

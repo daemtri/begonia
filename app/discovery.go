@@ -8,8 +8,8 @@ import (
 
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/di/box/validate"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 var (

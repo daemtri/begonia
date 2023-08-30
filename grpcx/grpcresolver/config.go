@@ -1,6 +1,6 @@
 package grpcresolver
 
-import "git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+import "github.com/daemtri/begonia/runtime/component"
 
 type ServiceConfig struct {
 	LoadBalancingConfig string

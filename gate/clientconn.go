@@ -6,7 +6,7 @@ import (
 	"net"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"github.com/daemtri/begonia/logx"
 )
 
 var (

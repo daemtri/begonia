@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
+	"github.com/daemtri/begonia/contract"
 )
 
 // RouteRegistrar 路由注册表

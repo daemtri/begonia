@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/api/transmit"
+	"github.com/daemtri/begonia/api/transmit"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

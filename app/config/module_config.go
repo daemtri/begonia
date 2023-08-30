@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sync/atomic"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/constraintx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/pkg/constraintx"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 // moduleConfig 模块配置

@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer/ringhash"
+	"github.com/daemtri/begonia/grpcx/balancer/ringhash"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/balancer/weightedroundrobin"
 	"google.golang.org/grpc/balancer/weightedtarget"

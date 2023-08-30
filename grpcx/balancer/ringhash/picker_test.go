@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/internal/testutils"
+	"github.com/daemtri/begonia/grpcx/internal/testutils"
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/connectivity"

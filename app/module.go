@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 var (

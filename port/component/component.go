@@ -3,7 +3,7 @@ package component
 import (
 	"flag"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
+	"github.com/daemtri/begonia/logx"
 )
 
 // Bootloader 定义了一个组件必须实现的引导启动接口

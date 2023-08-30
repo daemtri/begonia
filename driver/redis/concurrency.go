@@ -2,8 +2,8 @@ package redis
 
 // import (
 // 	"fmt"
-// 	"git.bianfeng.com/stars/wegame/wan/wanx/app"
-// 	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/goroutine"
+// 	"github.com/daemtri/begonia/app"
+// 	"github.com/daemtri/begonia/pkg/goroutine"
 // 	"github.com/go-redsync/redsync/v4"
 // 	"github.com/go-redsync/redsync/v4/redis/goredis/v8"
 // 	"os"

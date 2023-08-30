@@ -1,6 +1,6 @@
 package main
 
-import "git.bianfeng.com/stars/wegame/wan/wanx/logx"
+import "github.com/daemtri/begonia/logx"
 
 func main() {
 	logger := logx.GetLogger("test")

@@ -7,8 +7,8 @@ import (
 
 	"strings"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/logx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/logx"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 var (

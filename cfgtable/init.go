@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 type Context struct {

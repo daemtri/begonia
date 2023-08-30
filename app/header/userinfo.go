@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
+	"github.com/daemtri/begonia/pkg/helper"
 	"google.golang.org/grpc/metadata"
 )
 

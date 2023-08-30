@@ -12,8 +12,8 @@ box 库提供了一个全局的`依赖注入容器`，在初始化阶段注册�
 package main
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/logx"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/di/logx"
 )
 
 log = logx.GetLogger("main")
@@ -43,7 +43,7 @@ package main
 
 import (
 	"flag"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 type Server struct {
@@ -74,7 +74,7 @@ package main
 
 import (
 	"flag"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 type ServerRunOption struct {
@@ -117,7 +117,7 @@ func main() {
 package main
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 type ServerRunOption struct {
@@ -150,7 +150,7 @@ func main() {
 package main
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 )
 
 type Server struct {

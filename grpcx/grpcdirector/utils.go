@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	netutil "git.bianfeng.com/stars/wegame/wan/wanx/pkg/netx"
+	netutil "github.com/daemtri/begonia/pkg/netx"
 
 	"google.golang.org/grpc/metadata"
 )

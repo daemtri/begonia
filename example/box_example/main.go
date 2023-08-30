@@ -3,18 +3,18 @@ package main
 import (
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/cfgtable"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/apolloconfig"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/yamlconfig"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/bootstrap"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/client"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/config"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/contract"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/provider/userredis"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/repository"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/server"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/service"
+	"github.com/daemtri/begonia/cfgtable"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/di/box/config/apolloconfig"
+	"github.com/daemtri/begonia/di/box/config/yamlconfig"
+	"github.com/daemtri/begonia/example/box_example/bootstrap"
+	"github.com/daemtri/begonia/example/box_example/client"
+	"github.com/daemtri/begonia/example/box_example/config"
+	"github.com/daemtri/begonia/example/box_example/contract"
+	"github.com/daemtri/begonia/example/box_example/provider/userredis"
+	"github.com/daemtri/begonia/example/box_example/repository"
+	"github.com/daemtri/begonia/example/box_example/server"
+	"github.com/daemtri/begonia/example/box_example/service"
 )
 
 func main() {

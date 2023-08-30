@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/internal/codes"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/timex"
+	"github.com/daemtri/begonia/grpcx/internal/codes"
+	"github.com/daemtri/begonia/pkg/syncx"
+	"github.com/daemtri/begonia/pkg/timex"
 
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/balancer/base"

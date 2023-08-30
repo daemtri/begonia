@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/runtime/component"
 
 	"github.com/segmentio/ksuid"
 )

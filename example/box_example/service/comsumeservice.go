@@ -5,7 +5,7 @@ import (
 
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/contract"
+	"github.com/daemtri/begonia/example/box_example/contract"
 )
 
 type ConsumerService struct {

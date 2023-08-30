@@ -3,7 +3,7 @@ package app
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/contract"
+	"github.com/daemtri/begonia/contract"
 )
 
 type mockPubSubConsumerRegistrar struct {

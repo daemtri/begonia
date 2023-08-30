@@ -1,8 +1,8 @@
 package userredis
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/box_example/client"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/example/box_example/client"
 )
 
 var (

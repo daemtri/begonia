@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcproxy"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/testservice"
+	"github.com/daemtri/begonia/grpcx/grpcproxy"
+	"github.com/daemtri/begonia/grpcx/testservice"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcdirector"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcoptions"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcproxy"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/tracing"
-	netutil "git.bianfeng.com/stars/wegame/wan/wanx/pkg/netx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/syncx"
+	"github.com/daemtri/begonia/grpcx/grpcdirector"
+	"github.com/daemtri/begonia/grpcx/grpcoptions"
+	"github.com/daemtri/begonia/grpcx/grpcproxy"
+	"github.com/daemtri/begonia/grpcx/tracing"
+	netutil "github.com/daemtri/begonia/pkg/netx"
+	"github.com/daemtri/begonia/pkg/syncx"
 
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 
-	_ "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer"
+	_ "github.com/daemtri/begonia/grpcx/balancer"
 )
 
 const grpcTimeoutDefault = 5

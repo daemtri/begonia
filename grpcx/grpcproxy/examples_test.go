@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	grpcproxy2 "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/grpcproxy"
+	grpcproxy2 "github.com/daemtri/begonia/grpcx/grpcproxy"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

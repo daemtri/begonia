@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/example/di_example/clients"
+	"github.com/daemtri/begonia/example/di_example/clients"
 )
 
 type HttpServiceOptions struct {

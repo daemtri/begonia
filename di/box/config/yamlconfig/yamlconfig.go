@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/jsonconfig"
+	"github.com/daemtri/begonia/di/box"
+	"github.com/daemtri/begonia/di/box/config/jsonconfig"
 	"sigs.k8s.io/yaml"
 )
 

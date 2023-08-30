@@ -11,10 +11,10 @@ import (
 
 	"log/slog"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/chanpubsub"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/filepathx"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/di/box/validate"
+	"github.com/daemtri/begonia/pkg/chanpubsub"
+	"github.com/daemtri/begonia/pkg/filepathx"
+	"github.com/daemtri/begonia/runtime/component"
 	"github.com/fsnotify/fsnotify"
 	"sigs.k8s.io/yaml"
 )

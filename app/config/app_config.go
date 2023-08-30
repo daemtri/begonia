@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
-	config "git.bianfeng.com/stars/wegame/wan/wanx/di/box/config/jsonconfig"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/di/box"
+	config "github.com/daemtri/begonia/di/box/config/jsonconfig"
+	"github.com/daemtri/begonia/runtime/component"
 	"sigs.k8s.io/yaml"
 )
 

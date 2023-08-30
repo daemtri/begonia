@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/internal/testutils"
+	"github.com/daemtri/begonia/grpcx/internal/testutils"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"google.golang.org/grpc/attributes"

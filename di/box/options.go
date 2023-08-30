@@ -1,7 +1,7 @@
 package box
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/di"
+	"github.com/daemtri/begonia/di"
 )
 
 type options struct {

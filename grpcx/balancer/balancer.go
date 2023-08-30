@@ -1,9 +1,9 @@
 package balancer
 
 import (
-	_ "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer/p2c"
-	_ "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer/ringhash"
-	_ "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer/specify"
+	_ "github.com/daemtri/begonia/grpcx/balancer/p2c"
+	_ "github.com/daemtri/begonia/grpcx/balancer/ringhash"
+	_ "github.com/daemtri/begonia/grpcx/balancer/specify"
 	_ "google.golang.org/grpc/balancer/rls"
 	_ "google.golang.org/grpc/balancer/roundrobin"
 	_ "google.golang.org/grpc/balancer/weightedroundrobin"

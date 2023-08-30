@@ -3,7 +3,7 @@ package mysql
 import (
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box"
+	"github.com/daemtri/begonia/di/box"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

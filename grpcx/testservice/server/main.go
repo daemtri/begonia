@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	testservice2 "git.bianfeng.com/stars/wegame/wan/wanx/grpcx/testservice"
+	testservice2 "github.com/daemtri/begonia/grpcx/testservice"
 
 	"google.golang.org/grpc"
 )

@@ -1,6 +1,6 @@
 package config
 
-import "git.bianfeng.com/stars/wegame/wan/wanx/logx"
+import "github.com/daemtri/begonia/logx"
 
 var (
 	logger = logx.GetLogger("app/config")

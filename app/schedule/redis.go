@@ -3,7 +3,7 @@ package schedule
 import (
 	"context"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
+	"github.com/daemtri/begonia/driver/kafka"
 )
 
 type kafkaScheduler struct {

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/app/pubsub"
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/db"
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/kafka"
-	"git.bianfeng.com/stars/wegame/wan/wanx/driver/redis"
-	"git.bianfeng.com/stars/wegame/wan/wanx/pkg/helper"
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/app/pubsub"
+	"github.com/daemtri/begonia/driver/db"
+	"github.com/daemtri/begonia/driver/kafka"
+	"github.com/daemtri/begonia/driver/redis"
+	"github.com/daemtri/begonia/pkg/helper"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 type DBConfig struct {

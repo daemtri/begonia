@@ -3,8 +3,8 @@ package grpcresolver
 import (
 	"slices"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
 	"github.com/coreos/go-semver/semver"
+	"github.com/daemtri/begonia/runtime/component"
 )
 
 // grayReleaseHandle 处理同时存在多个版本的情况

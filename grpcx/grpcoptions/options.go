@@ -3,7 +3,7 @@ package grpcoptions
 import (
 	"flag"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/validate"
+	"github.com/daemtri/begonia/di/box/validate"
 )
 
 type Options struct {

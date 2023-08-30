@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx/balancer/specify"
+	"github.com/daemtri/begonia/grpcx/balancer/specify"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

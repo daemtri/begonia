@@ -1,7 +1,7 @@
 package grpcresolver
 
 import (
-	"git.bianfeng.com/stars/wegame/wan/wanx/runtime/component"
+	"github.com/daemtri/begonia/runtime/component"
 	"google.golang.org/grpc/resolver"
 )
 

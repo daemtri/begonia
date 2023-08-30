@@ -5,8 +5,8 @@ import (
 	"flag"
 	"fmt"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/di"
-	"git.bianfeng.com/stars/wegame/wan/wanx/di/box/flagx"
+	"github.com/daemtri/begonia/di"
+	"github.com/daemtri/begonia/di/box/flagx"
 )
 
 var (

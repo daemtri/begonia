@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"git.bianfeng.com/stars/wegame/wan/wanx/api/transmit"
-	"git.bianfeng.com/stars/wegame/wan/wanx/bootstrap/header"
-	"git.bianfeng.com/stars/wegame/wan/wanx/grpcx"
+	"github.com/daemtri/begonia/api/transmit"
+	"github.com/daemtri/begonia/bootstrap/header"
+	"github.com/daemtri/begonia/grpcx"
 	"google.golang.org/grpc"
 )
 
