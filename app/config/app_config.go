@@ -23,6 +23,10 @@ func NewAppConfigLoader(appConfigName string) *AppConfigLoader {
 }
 
 func (c *AppConfigLoader) Load(ctx context.Context, setter func([]box.ConfigItem)) error {
+	if c.appConfigName == "" {
+		logger.Info("app config not load", "reason", "app config name is empty")
+		return nil
+	}
 	c.driver = box.Invoke[component.Configurator](ctx)
 
 	cfg, err := c.driver.ReadConfig(ctx, c.appConfigName)
