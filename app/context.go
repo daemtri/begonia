@@ -32,8 +32,8 @@ func objectContainerFromCtx(ctx context.Context) *objectContainer {
 }
 
 type moduleOption struct {
-	Dependecies []string `flag:"dependecies" usage:"依赖"`
-	ConfigName  string   `flag:"config" usage:"配置名,默认为module_{module_name}"`
+	Dependencies []string `flag:"dependencies" usage:"依赖"`
+	ConfigName   string   `flag:"config" usage:"配置名,默认为{module_name}"`
 }
 
 type moduleRuntime struct {
@@ -44,9 +44,9 @@ type moduleRuntime struct {
 }
 
 func (mr *moduleRuntime) init() error {
-	depency.SetModuleConfig(mr.moduleName, mr.opts.Dependecies)
+	depency.SetModuleConfig(mr.moduleName, mr.opts.Dependencies)
 	if mr.opts.ConfigName == "" {
-		mr.opts.ConfigName = "module_" + mr.moduleName
+		mr.opts.ConfigName = mr.moduleName
 	}
 	return nil
 }

@@ -15,11 +15,11 @@ func Init() box.BuildOption {
 }
 
 type ConfigLoader struct {
-	Configfile string `flag:"config" default:"./config.yaml" usage:"配置文件路径"`
+	ConfigFile string `flag:"config" default:"./configs/config.yaml" usage:"配置文件路径"`
 }
 
 func (c *ConfigLoader) Load(ctx context.Context, setter func([]box.ConfigItem)) error {
-	items, err := Load(c.Configfile)
+	items, err := Load(c.ConfigFile)
 	if err != nil {
 		return err
 	}
